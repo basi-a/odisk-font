@@ -1,20 +1,20 @@
 <template>
     <div class="full-screen-background">
         <div class="login-container">
-            <a-card title="Odisk Login" :bordered="false" class="antd-card">
+            <a-card title="用户登录" :bordered="false" class="antd-card">
 
                 <a-form :model="formState" name="normal_login" class="login-form" @finish="onFinish"
                     @finishFailed="onFinishFailed">
-                    <a-form-item label="Username" name="username"
-                        :rules="[{ required: true, message: 'Please input your username!' }]">
-                        <a-input v-model:value="formState.username">
+                    <a-form-item label="邮箱" name="email"
+                        :rules="[{ required: true, message: 'Please input your email!' }]">
+                        <a-input v-model:value="formState.email">
                             <template #prefix>
-                                <UserOutlined class="site-form-item-icon" />
+                                <MailOutlined class="site-form-item-icon" />
                             </template>
                         </a-input>
                     </a-form-item>
 
-                    <a-form-item label="Password" name="password"
+                    <a-form-item label="密码" name="password"
                         :rules="[{ required: true, message: 'Please input your password!' }]">
                         <a-input-password v-model:value="formState.password">
                             <template #prefix>
@@ -24,13 +24,13 @@
                     </a-form-item>
                     <a-form-item>
                         <a-button :disabled="disabled" type="primary" html-type="submit" class="login-form-button">
-                            Log in
+                            登录
                         </a-button>
                     </a-form-item>
                     <a-form-item>
-                        <a-checkbox v-model:checked="formState.remember" class="remember-me">Remember me</a-checkbox>
-                        <a class="login-form-forgot" href="/forget">Forgot password</a>
-                        <a class="register-link" href="/regeister">register now!</a>
+                        <a-checkbox v-model:checked="formState.remember" class="remember-me">记住我</a-checkbox>
+                        <a class="login-form-forgot" href="/forget">忘记密码</a>
+                        <a class="register-link" href="/regeister">现在注册！！</a>
                     </a-form-item>
                 </a-form>
             </a-card>
@@ -41,11 +41,11 @@
     
 <script setup>
 import { reactive, computed } from 'vue';
-import { UserOutlined, LockOutlined } from '@ant-design/icons-vue';
+import { MailOutlined, LockOutlined } from '@ant-design/icons-vue';
 import axios from 'axios';
 import { LOGIN_ENDPOINT } from '../../api.config.js';
 const formState = reactive({
-    username: '',
+    email: '',
     password: '',
     remember: true,
 });
@@ -54,7 +54,7 @@ const onFinish = async (values) => {
     try {
         // 发送POST请求到后端API  
         const response = await axios.post(LOGIN_ENDPOINT, {
-            username: values.username,
+            email: values.email,
             password: values.password,
         });
 
@@ -76,7 +76,7 @@ const onFinishFailed = errorInfo => {
     console.log('Failed:', errorInfo);
 };
 const disabled = computed(() => {
-    return !(formState.username && formState.password);
+    return !(formState.email && formState.password);
 });
 </script>  
     
