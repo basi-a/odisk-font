@@ -44,34 +44,41 @@ import { reactive, computed } from 'vue';
 import { MailOutlined, LockOutlined } from '@ant-design/icons-vue';
 import axios from 'axios';
 import { LOGIN_ENDPOINT } from '../../api.config.js';
+import router from '../router'
 const formState = reactive({
     email: '',
     password: '',
     remember: true,
 });
+// 登录处理函数  
+const onFinish = async () => {  
+  try {  
+    const data = new FormData();  
+    data.append('email', formState.email);  
+    data.append('password', formState.password); 
 
-const onFinish = async (values) => {
-    try {
-        // 发送POST请求到后端API  
-        const response = await axios.post(LOGIN_ENDPOINT, {
-            email: values.email,
-            password: values.password,
-        });
-
-        // 如果请求成功，处理响应数据  
-        if (response.status === 200) {
-            console.log('Login successful:', response.data);
-            // 在这里，您可能想要将用户信息保存到本地存储，重定向到另一个页面等  
-        } else {
-            // 处理错误情况  
-            console.log('Login failed:', response.data);
-        }
-    } catch (error) {
-        // 处理请求错误  
-        console.error('An error occurred:', error);
-    }
-};
-
+    // 发送 POST 请求到后端 API，并携带 remember 字段  
+    const response = await axios.post(LOGIN_ENDPOINT, data, {  
+      withCredentials: formState.remember.value, // 允许跨站点访问控制（CORS）携带 cookie  
+      headers: {  
+        'Content-Type': 'multipart/form-data', // 设置正确的 Content-Type  
+      },  
+    }); 
+  
+    if (response.status === 200) {  
+      console.log('Login successful:', response.data);  
+  
+    //   重定向到 /dashboard 页面  
+      router.push('/dashboard');  
+    } else {  
+      // 处理登录失败的情况  
+      console.log('Login failed:', response.data);  
+    }  
+  } catch (error) {  
+    // 处理请求错误  
+    console.error('An error occurred during login:', error);  
+  }  
+};  
 const onFinishFailed = errorInfo => {
     console.log('Failed:', errorInfo);
 };
