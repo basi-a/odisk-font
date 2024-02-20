@@ -29,8 +29,8 @@
                     </a-form-item>
                     <a-form-item>
                         <a-checkbox v-model:checked="formState.remember" class="remember-me">记住我</a-checkbox>
-                        <a class="login-form-forgot" href="/forget">忘记密码</a>
-                        <a class="register-link" href="/regeister">现在注册！！</a>
+                        <a class="login-form-forgot" href="/forget">忘记密码🤔</a>
+                        <a class="register-link" href="/register">现在注册！！</a>
                     </a-form-item>
                 </a-form>
             </a-card>
