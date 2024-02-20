@@ -53,8 +53,8 @@
 import { reactive, computed } from 'vue';
 import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons-vue';
 import axios from 'axios';
-import { REGISTER_ENDPOINT, SEND_MAIL_ENDPOINT } from '../../api.config.js';
-import router from '../router'
+import { REGISTER_ENDPOINT, SEND_MAIL_ENDPOINT } from '@/api.config.js';
+import router from '@/router'
 import Swal from 'sweetalert2';
 const formState = reactive({
     username: '',

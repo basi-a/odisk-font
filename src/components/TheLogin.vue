@@ -43,8 +43,8 @@
 import { reactive, computed } from 'vue';
 import { MailOutlined, LockOutlined } from '@ant-design/icons-vue';
 import axios from 'axios';
-import { LOGIN_ENDPOINT } from '../../api.config.js';
-import router from '../router'
+import { LOGIN_ENDPOINT } from '@/api.config.js';
+import router from '@/router'
 const formState = reactive({
     email: '',
     password: '',
