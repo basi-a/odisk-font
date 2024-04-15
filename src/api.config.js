@@ -1,5 +1,18 @@
-// api.config.js  
-export const API_BASE_URL = '/api/v1'
-export const LOGIN_ENDPOINT = API_BASE_URL + '/login';  
-export const REGISTER_ENDPOINT = API_BASE_URL + '/register'
-export const SEND_MAIL_ENDPOINT = API_BASE_URL + '/sendmail'
+// api.config.js
+
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+
+export const ENDPOINTS = {
+  login: `${BASE_URL}/login`,
+  register: `${BASE_URL}/register`,
+  sendMailVerification: `${BASE_URL}/emailVerify`,
+  s3: {
+    upload: `${BASE_URL}/s3/upload`,
+    smallFile: `${BASE_URL}/s3/upload/small`,
+    bigFile: {
+      upload: `${BASE_URL}/s3/upload/big`,
+      create: `${BASE_URL}/s3/upload/big/create`,
+    },
+  },
+};

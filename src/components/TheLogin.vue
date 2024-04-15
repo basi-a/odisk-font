@@ -43,7 +43,7 @@
 import { reactive, computed } from 'vue';
 import { MailOutlined, LockOutlined } from '@ant-design/icons-vue';
 import axios from 'axios';
-import { LOGIN_ENDPOINT } from '@/api.config.js';
+import { ENDPOINTS } from '@/api.config.js';
 import router from '@/router'
 const formState = reactive({
     email: '',
@@ -58,7 +58,7 @@ const onFinish = async () => {
     data.append('password', formState.password); 
 
     // 发送 POST 请求到后端 API，并携带 remember 字段  
-    const response = await axios.post(LOGIN_ENDPOINT, data, {  
+    const response = await axios.post(ENDPOINTS.login, data, {  
       withCredentials: formState.remember.value, // 允许跨站点访问控制（CORS）携带 cookie  
       headers: {  
         'Content-Type': 'multipart/form-data', // 设置正确的 Content-Type  

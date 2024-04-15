@@ -53,7 +53,7 @@
 import { reactive, computed } from 'vue';
 import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons-vue';
 import axios from 'axios';
-import { REGISTER_ENDPOINT, SEND_MAIL_ENDPOINT } from '@/api.config.js';
+import { ENDPOINTS } from '@/api.config.js';
 import router from '@/router'
 import Swal from 'sweetalert2';
 const formState = reactive({
@@ -68,7 +68,7 @@ const sendMail = async () => {
     try {
         const data = new FormData();
         data.append('email', formState.email)
-        const response = await axios.post(SEND_MAIL_ENDPOINT, data, {
+        const response = await axios.post(ENDPOINTS.sendMailVerification, data, {
             withCredentials: true, // 允许跨站点访问控制（CORS）携带 cookie  
             headers: {
                 'Content-Type': 'multipart/form-data', // 设置正确的 Content-Type  
@@ -93,7 +93,7 @@ const onFinish = async () => {
         data.append('password', formState.password);
         data.append('code', formState.code)
 
-        const response = await axios.post(REGISTER_ENDPOINT, data, {
+        const response = await axios.post(ENDPOINTS.register, data, {
             withCredentials: true, // 允许跨站点访问控制（CORS）携带 cookie  
             headers: {
                 'Content-Type': 'multipart/form-data', // 设置正确的 Content-Type  
