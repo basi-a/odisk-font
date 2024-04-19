@@ -67,9 +67,15 @@ const onFinish = async () => {
   
     if (response.status === 200) {  
       console.log('Login successful:', response.data);  
-  
-    //   重定向到 /dashboard 页面  
-      router.push('/dashboard');  
+        // 根据用户角色重定向到不同页面
+      const userInfo = response.data;
+      if (userInfo.permission === 'userAdmin') {
+        router.push('/userAdmin'); // 重定向到管理后台
+      }else if (userInfo.permission === 's3Admin'){
+        router.push('/s3Admin'); // 重定向到管理后台
+      }else {
+        router.push('/dashboard'); // 重定向到用户仪表板
+      }
     } else {  
       // 处理登录失败的情况  
       console.log('Login failed:', response.data);  
