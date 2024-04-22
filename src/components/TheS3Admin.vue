@@ -33,16 +33,16 @@
                     </a-menu-item> -->
                 </a-menu>
             </a-layout-sider>
-            <a-layout style="display: flex; flex-direction: column; min-height: 100vh;">
+            <a-layout style="display: flex; flex-direction: column; min-height: 100vh; ">
                 <a-layout-header
                     style="height: 45px; background: #fff; display: flex; justify-content: flex-end; align-items: center;">
 
                     <a-dropdown v-if=userinfo>
 
-                        <a class="ant-dropdown-link" @click.prevent>
+                        <a class="ant-dropdown-link" @click.prevent >
 
                             <span>你好，{{ userinfo.username }}</span>
-                            <a-avatar style="margin:10px;"
+                            <a-avatar style="margin-left:10px; "
                                 src=" https://q2.qlogo.cn/headimg_dl?dst_uin=3188765573&spec=100"
                                 size="medium"></a-avatar>
                         </a>
@@ -79,7 +79,7 @@ import router from '@/router'
 import TheFileManager from "./dashboard/TheFileManager.vue";
 import TheTaskDone from "./dashboard/TheTaskDone.vue";
 import TheTaskDoing from "./dashboard/TheTaskDoing.vue";
-import TheDashboarUserProfile from './dashboard/TheDashboarUserProfile.vue';
+import TheDashboarUserProfile from './dashboard/TheUserProfile.vue';
 const collapsed = ref(true);
 const selectedKeys = ref(['1']);
 const components = {
@@ -186,6 +186,13 @@ const logout = async () => {
     color: #fff;
     font-size: 22px;
     margin-left: 10px;
+}
+
+.ant-dropdown-link {
+    display: flex;
+    align-items: center;
+    /* Aligns avatar and username vertically */
+    color: #565a5a;
 }
 
 /* .header-left {}
