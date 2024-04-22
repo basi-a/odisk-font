@@ -65,16 +65,19 @@ router.beforeEach(async (to, _, next) => {
       if (response.status === 200) {
         const userInfo = response.data;
         if (userInfo && userInfo.permission) {
+          console.log(userInfo)
+          // 根据权限进行重定向
           if (userInfo.permission === 'userAdmin') {
             next('/userAdmin');
           } else if (userInfo.permission === 's3Admin') {
             next('/s3Admin');
+          } else if (userInfo.permission === 'general') {
+            next('/dashboard'); // 只有普通用户（permission为'general'）重定向到/dashboard
           } else {
-            next('/dashboard');
+            // 用户信息无效或缺失权限字段，重定向到登录或错误页面
+            console.warn('Invalid or missing permission field in user data:', userInfo);
+            next('/login');
           }
-        } else {
-          // 用户信息无效或缺失权限字段，重定向到登录或错误页面  
-          next('/login'); // 或者你可以重定向到一个错误页面  
         }
       } else {
         // 登录失败或API返回错误状态码，重定向到登录页面  

@@ -37,12 +37,13 @@
         </div>
 
     </div>
-</template>  
-    
+</template>
+
 <script setup>
 import { reactive, computed } from 'vue';
 import { MailOutlined, LockOutlined } from '@ant-design/icons-vue';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 import { ENDPOINTS } from '@/api.config.js';
 import router from '@/router'
 const formState = reactive({
@@ -51,56 +52,78 @@ const formState = reactive({
     remember: true,
 });
 // 登录处理函数  
-const onFinish = async () => {  
-  try {  
-    const data = new FormData();  
-    data.append('email', formState.email);  
-    data.append('password', formState.password); 
+const onFinish = async () => {
+    try {
+        const data = new FormData();
+        data.append('email', formState.email);
+        data.append('password', formState.password);
 
-    // 发送 POST 请求到后端 API，并携带 remember 字段  
-    const response = await axios.post(ENDPOINTS.login, data, {  
-      withCredentials: formState.remember.value, // 允许跨站点访问控制（CORS）携带 cookie  
-      headers: {  
-        'Content-Type': 'multipart/form-data', // 设置正确的 Content-Type  
-      },  
-    }); 
-  
-    if (response.status === 200) {  
-      console.log('Login successful:', response.data);  
-        // 根据用户角色重定向到不同页面
-      const userInfo = response.data;
-      if (userInfo.permission === 'userAdmin') {
-        router.push('/userAdmin'); // 重定向到管理后台
-      }else if (userInfo.permission === 's3Admin'){
-        router.push('/s3Admin'); // 重定向到管理后台
-      }else {
-        router.push('/dashboard'); // 重定向到用户仪表板
-      }
-    } else {  
-      // 处理登录失败的情况  
-      console.log('Login failed:', response.data);  
-    }  
-  } catch (error) {  
-    // 处理请求错误  
-    console.error('An error occurred during login:', error);  
-  }  
-};  
+        // 发送 POST 请求到后端 API，并携带 remember 字段  
+        const response = await axios.post(ENDPOINTS.login, data, {
+            withCredentials: formState.remember.valueOf, // 允许跨站点访问控制（CORS）携带 cookie  
+            headers: {
+                'Content-Type': 'multipart/form-data', // 设置正确的 Content-Type  
+            },
+        });
+
+        if (response.status === 200) {
+            console.log('Login successful:', response.data);
+            Swal.fire({
+                icon: 'success',
+                title: '登陆成功',
+                text: '登陆成功！！',
+                showConfirmButton: false,
+                timer: 1500
+            });
+
+        } else {
+            // 处理登录失败的情况  
+            console.log('Login failed:', response.data);
+        }
+    } catch (error) {
+        // 处理请求错误  
+        console.error('An error occurred during login:', error);
+    }
+
+    try {
+        const response = await axios.get(ENDPOINTS.getUserInfo, {
+            withCredentials: true
+        });
+        if (response.status === 200) {
+            // 根据用户角色重定向到不同页面
+            const userInfo = response.data.data[0];
+            
+            if (userInfo.permission === 'userAdmin') {
+                router.push('/userAdmin'); // 重定向到管理后台
+            } else if (userInfo.permission === 's3Admin') {
+                router.push('/s3Admin'); // 重定向到管理后台
+            } else {
+                router.push('/dashboard'); // 重定向到用户仪表板
+            }
+        }
+
+    } catch (error) {
+        console.error('An error occurred during getUserInfo:', error);
+    }
+};
 const onFinishFailed = errorInfo => {
     console.log('Failed:', errorInfo);
 };
 const disabled = computed(() => {
     return !(formState.email && formState.password);
 });
-</script>  
-    
-<style scoped>  .full-screen-background {
+</script>
+
+<style scoped>
+.full-screen-background {
     /* 设置背景图像 */
-    background-image:linear-gradient(120deg,#a6c0fe 0%, #f68084 100%);
+    background-image: linear-gradient(120deg, #a6c0fe 0%, #f68084 100%);
     /* background-image: url(https://cdn.basi-a.top/images/images_tree.webp); */
     background-size: cover;
     /* 背景图像覆盖整个容器 */
     background-position: center;
-    background-repeat: no-repeat; /* 图片不重复 */  
+    background-repeat: no-repeat;
+    /* 图片不重复 */
     /* 背景图像居中 */
     height: 100vh;
     /* 容器高度占满视口高度 */
@@ -160,4 +183,5 @@ const disabled = computed(() => {
 
 .register-link {
     float: right;
-}</style>
+}
+</style>

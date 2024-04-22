@@ -9,6 +9,7 @@
     "preview": "vite preview --mode development"
   },
   "dependencies": {
+    "@vitejs/plugin-basic-ssl": "^1.1.0",
     "ant-design-vue": "^4.1.2",
     "axios": "^1.6.7",
     "https": "^1.0.0",

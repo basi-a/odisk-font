@@ -5,6 +5,7 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export const ENDPOINTS = {
   login: `${BASE_URL}/login`,
+  logout: `${BASE_URL}/logout`,
   register: `${BASE_URL}/register`,
   sendMailVerification: `${BASE_URL}/emailVerify`,
   getUserInfo: `${BASE_URL}/userInfo`,
