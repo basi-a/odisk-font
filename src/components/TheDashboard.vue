@@ -37,11 +37,11 @@
                 <a-layout-header
                     style="height: 45px; background: #fff; display: flex; justify-content: flex-end; align-items: center;">
 
-                    <a-dropdown v-if=userinfo>
+                    <a-dropdown v-if=userInfo>
 
-                        <a class="ant-dropdown-link" @click.prevent >
+                        <a class="ant-dropdown-link" @click.prevent>
 
-                            <span>你好，{{ userinfo.username }}</span>
+                            <span>你好，{{ userInfo.username }}</span>
                             <a-avatar style="margin-left:10px; "
                                 src=" https://q2.qlogo.cn/headimg_dl?dst_uin=3188765573&spec=100"
                                 size="medium"></a-avatar>
@@ -75,12 +75,12 @@ import {
 import axios from 'axios';
 import { ENDPOINTS } from '@/api.config.js';
 import router from '@/router'
-
+import Swal from 'sweetalert2';
 import TheFileManager from "./dashboard/TheFileManager.vue";
 import TheTaskDone from "./dashboard/TheTaskDone.vue";
 import TheTaskDoing from "./dashboard/TheTaskDoing.vue";
 import TheDashboarUserProfile from './dashboard/TheUserProfile.vue';
-const collapsed = ref(true);
+const collapsed = ref(false);
 const selectedKeys = ref(['1']);
 const components = {
     '1': TheFileManager,
@@ -98,33 +98,20 @@ const onSelect = (item) => {
     // console.log(selectedKeys.value[0])
     currentComponent.value = components[selectedKeys.value[0]];
 };
-
-
-// 创建一个响应式的ref对象来存储userinfo数据
-const userinfo = ref(null);
-
-async function fetchUserInfo() {
-    try {
-        console.log('Sending GET request to /v1/userinfo...');
-        const response = await axios.get(ENDPOINTS.getUserInfo, {
-            withCredentials: true,
+const userInfo = ref(null);
+async function checkPermission() {
+    userInfo.value = JSON.parse(sessionStorage.getItem('userInfo'));
+    if (userInfo.permission === 'userAdmin' || userInfo.permission === 's3Admin') {
+        Swal.fire({
+            icon: 'error',
+            title: '访问失败',
+            text: '用户权限不正确',
+            showConfirmButton: false,
+            timer: 1500
         });
-
-        console.log('Received response:', response.data);
-        // 将API响应中的data赋值给userinfo
-        userinfo.value = response.data.data[0];
-
-        console.log('Userinfo has been assigned:', userinfo.value);
-    } catch (error) {
-        console.error('Failed to fetch user info:', error);
-        // 可以根据需要处理错误情况，如显示错误提示等
     }
 }
-
-// 在组件挂载后立即触发fetchUserInfo函数
-fetchUserInfo();
-
-// console.log(userInfo.value);
+checkPermission();
 const onClick = (item) => {
     const { key } = item;
     if (key === 'profile') {
@@ -145,10 +132,10 @@ const logout = async () => {
             withCredentials: true,
         });
         // Clear user info and redirect to login page
-        userinfo.value = null;
+        userInfo.value = null;
 
         document.cookie = `session_id=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
-
+        sessionStorage.removeItem('userInfo')
         router.push('/login');
     } catch (error) {
         console.error('Error logging out:', error);

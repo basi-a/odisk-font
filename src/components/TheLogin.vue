@@ -58,16 +58,16 @@ const onFinish = async () => {
         data.append('email', formState.email);
         data.append('password', formState.password);
 
-        // 发送 POST 请求到后端 API，并携带 remember 字段  
-        const response = await axios.post(ENDPOINTS.login, data, {
-            withCredentials: formState.remember.valueOf, // 允许跨站点访问控制（CORS）携带 cookie  
+        // Perform the login request first
+        const loginResponse = await axios.post(ENDPOINTS.login, data, {
+            withCredentials: formState.remember.valueOf, // Allow CORS with cookies
             headers: {
-                'Content-Type': 'multipart/form-data', // 设置正确的 Content-Type  
+                'Content-Type': 'multipart/form-data', // Set correct Content-Type
             },
         });
 
-        if (response.status === 200) {
-            console.log('Login successful:', response.data);
+        if (loginResponse.status === 200) {
+            console.log('Login successful:', loginResponse.data);
             Swal.fire({
                 icon: 'success',
                 title: '登陆成功',
@@ -75,35 +75,32 @@ const onFinish = async () => {
                 showConfirmButton: false,
                 timer: 1500
             });
+            // Now fetch the user info
+            const userInfoResponse = await axios.get(ENDPOINTS.getUserInfo, {
+                withCredentials: true,
+            });
 
-        } else {
-            // 处理登录失败的情况  
-            console.log('Login failed:', response.data);
-        }
-    } catch (error) {
-        // 处理请求错误  
-        console.error('An error occurred during login:', error);
-    }
 
-    try {
-        const response = await axios.get(ENDPOINTS.getUserInfo, {
-            withCredentials: true
-        });
-        if (response.status === 200) {
-            // 根据用户角色重定向到不同页面
-            const userInfo = response.data.data[0];
-            
-            if (userInfo.permission === 'userAdmin') {
-                router.push('/userAdmin'); // 重定向到管理后台
-            } else if (userInfo.permission === 's3Admin') {
-                router.push('/s3Admin'); // 重定向到管理后台
+            if (userInfoResponse.status === 200) {
+                const userInfo = userInfoResponse.data.data;
+                sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
+
+                // Perform the redirection based on user role
+                if (userInfo.permission === 'userAdmin') {
+                    router.push('/userAdmin'); // Redirect to admin dashboard
+                } else if (userInfo.permission === 's3Admin') {
+                    router.push('/s3Admin'); // Redirect to admin dashboard
+                } else {
+                    router.push('/dashboard'); // Redirect to user dashboard
+                }
             } else {
-                router.push('/dashboard'); // 重定向到用户仪表板
+                console.error('An error occurred while fetching user info:', userInfoResponse.data);
             }
+        } else {
+            console.log('Login failed:', loginResponse.data);
         }
-
     } catch (error) {
-        console.error('An error occurred during getUserInfo:', error);
+        console.error('An error occurred during login:', error);
     }
 };
 const onFinishFailed = errorInfo => {

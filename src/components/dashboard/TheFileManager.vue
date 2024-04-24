@@ -22,29 +22,26 @@
         </a-card>
 
         <!-- Add a transparent overlay to capture clicks outside the card -->
-        <div v-if="showFileUploadCard" class="overlay" @click="hideFileUploadCard"></div>
+        <div v-if="showFileUploadCard" class="overlay" @click="hideFileUploadCard" />
 
 
 
-        <div v-if=fileslist>
-            这里是 网盘有的文件 文件夹
-        </div>
-        <div v-else >
-            <component :is=TheEmpty></component>
-        </div>
+        <component :is=TheFileList></component>
+
 
     </div>
 </template>
 
 <script setup>
 import TheFileUpload from "./TheFileUpload.vue";
-import TheEmpty from "../TheEmpty.vue"
+import TheFileList from "./TheFileList.vue";
+
 import { ref } from 'vue';
 import {
     CloudUploadOutlined,
 } from '@ant-design/icons-vue';
 const showFileUploadCard = ref(false);
-const fileslist = ref(null);
+
 
 function hideFileUploadCard() {
     showFileUploadCard.value = false;
@@ -61,6 +58,4 @@ function hideFileUploadCard() {
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 999;
 }
-
-
 </style>

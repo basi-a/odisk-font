@@ -11,9 +11,6 @@
         <InboxOutlined/>
       </p>
       <p class="ant-upload-text">点击或拖拽文件至此区域即可上传</p>
-      <p class="ant-upload-hint">
-        支持单次或批量上传, 严禁上传敏感文件或数据！！！
-      </p>
     </a-upload-dragger>
   </template>
   <script setup>

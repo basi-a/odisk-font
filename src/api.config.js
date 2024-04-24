@@ -10,7 +10,11 @@ export const ENDPOINTS = {
   sendMailVerification: `${BASE_URL}/emailVerify`,
   getUserInfo: `${BASE_URL}/userInfo`,
   s3: {
-    upload: `${BASE_URL}/s3/upload`,
+    delatefile: `${BASE_URL}/s3/delate`,
+    filelist: `${BASE_URL}/s3/list`,
+    getDownloadUrl: `${BASE_URL}/s3/download`,
+    mvOrRename: `${BASE_URL}/s3/mv`,
+    mkdir: `${BASE_URL}/s3/mkdir`,
     smallFile: `${BASE_URL}/s3/upload/small`,
     bigFile: {
       upload: `${BASE_URL}/s3/upload/big`,
