@@ -100,7 +100,7 @@ const onSelect = (item) => {
 };
 const userInfo = ref(null);
 async function checkPermission() {
-    userInfo.value = JSON.parse(sessionStorage.getItem('userInfo'));
+    userInfo.value = JSON.parse(localStorage.getItem('userInfo'));
     if (userInfo.permission === 'userAdmin' || userInfo.permission === 's3Admin') {
         Swal.fire({
             icon: 'error',
@@ -135,7 +135,7 @@ const logout = async () => {
         userInfo.value = null;
 
         document.cookie = `session_id=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
-        sessionStorage.removeItem('userInfo')
+        localStorage.removeItem('userInfo')
         router.push('/login');
     } catch (error) {
         console.error('Error logging out:', error);

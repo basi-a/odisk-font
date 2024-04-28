@@ -83,7 +83,7 @@ const onFinish = async () => {
 
             if (userInfoResponse.status === 200) {
                 const userInfo = userInfoResponse.data.data;
-                sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
+                localStorage.setItem('userInfo', JSON.stringify(userInfo));
 
                 // Perform the redirection based on user role
                 if (userInfo.permission === 'userAdmin') {

@@ -37,7 +37,7 @@
 <script setup>
 
 // 创建一个响应式的ref对象来存储userInfo数据
-const userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
 
 </script>
