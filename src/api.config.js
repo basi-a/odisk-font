@@ -7,6 +7,7 @@ export const ENDPOINTS = {
   login: `${BASE_URL}/login`,
   logout: `${BASE_URL}/logout`,
   register: `${BASE_URL}/register`,
+  forget: `${BASE_URL}/reset`,
   sendMailVerification: `${BASE_URL}/emailVerify`,
   getUserInfo: `${BASE_URL}/userInfo`,
   s3: {

@@ -32,7 +32,9 @@
                     <a-form-item label="验证码" name="code" :rules="[{ required: true, message: 'Please input your verification code!' }]">
                         <div style="display: flex; align-items: center;">  
                         <a-input v-model:value="formState.code"></a-input>
-                        <a-button @click="sendMail" :disabled="!formState.email" style="margin-left: 10px;">获取验证码</a-button>
+                        <a-button @click="sendMail" :disabled="sendingDisabled || !formState.email" style="margin-left: 10px;">
+                            {{ sendingDisabled ? `重新发送(${countdown}s)` : '获取验证码' }}
+                        </a-button>
                     </div>  
                     </a-form-item>
                     <a-form-item>
@@ -50,7 +52,7 @@
     </div>
 </template>  
 <script setup>
-import { reactive, computed } from 'vue';
+import { reactive, computed, ref } from 'vue';
 import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons-vue';
 import axios from 'axios';
 import { ENDPOINTS } from '@/api.config.js';
@@ -62,9 +64,22 @@ const formState = reactive({
     password: '',
     code: '',
 });
-
+const sendingDisabled = ref(false);
+const countdown = ref(0);
 // 发送邮件函数
 const sendMail = async () => {
+    if (sendingDisabled.value) return; // 如果按钮处于禁用状态，则直接返回
+    sendingDisabled.value = true; // 禁用按钮
+    countdown.value = 10; // 开始倒计时
+
+    // 倒计时逻辑
+    const intervalId = setInterval(() => {
+        countdown.value -= 1;
+        if (countdown.value <= 0) {
+            clearInterval(intervalId);
+            sendingDisabled.value = false; // 倒计时结束，重新启用按钮
+        }
+    }, 1000);
     try {
         const data = new FormData();
         data.append('email', formState.email)

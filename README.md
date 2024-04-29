@@ -1,6 +1,6 @@
 # odisk-font
 
-This template should help get you started developing with Vue 3 in Vite.
+这个是`odisk`这个项目的前端，也就是我的毕业设计辣
 
 ## Recommended IDE Setup
 
@@ -14,6 +14,7 @@ See [Vite Configuration Reference](https://vitejs.dev/config/).
 
 ```sh
 npm install
+./cert/cp-cert.sh
 ```
 
 ### Compile and Hot-Reload for Development

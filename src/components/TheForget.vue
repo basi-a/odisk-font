@@ -3,31 +3,40 @@
         <div class="forget-container">
             <a-card title="忘记密码" :bordered="false" class="antd-card">
 
-                <a-form :model="formState" name="normal_login" class="login-form" @finish="onFinish" @finishFailed="onFinishFailed">
+                <a-form :model="formState" name="normal_login" class="login-form" @finish="onFinish"
+                    @finishFailed="onFinishFailed">
 
-                    <a-form-item label="邮箱" name="email" :rules="[{ required: true, message: 'Please input your email!' }]">
-                        <a-input v-model:value="formState.email">
-                            <template #prefix>
-                                <MailOutlined class="site-form-item-icon" />
-                            </template>
-                        </a-input>
+                    <a-form-item label="邮箱" name="email"
+                        :rules="[{ required: true, message: 'Please input your email!' }]">
+                        <div style="display: flex; align-items: center;margin-left: 28px;">
+                            <a-input v-model:value="formState.email">
+                                <template #prefix>
+                                    <MailOutlined class="site-form-item-icon" />
+                                </template>
+                            </a-input>
+                        </div>
                     </a-form-item>
-
-                    <a-form-item label="密码" name="password"
+                    <a-form-item label="验证码" name="code"
+                        :rules="[{ required: true, message: 'Please input your verification code!' }]">
+                        <div style="display: flex; align-items: center;margin-left: 14px;">
+                            <a-input v-model:value="formState.code"></a-input>
+                            <a-button @click="sendMail" :disabled="sendingDisabled || !formState.email"
+                                style="margin-left: 8px;">
+                                {{ sendingDisabled ? `重新发送(${countdown}s)` : '获取验证码' }}
+                            </a-button>
+                        </div>
+                    </a-form-item>
+                    <a-form-item label="新的密码" name="password"
                         :rules="[{ required: true, message: 'Please input your password!' }]">
-                        <a-input-password v-model:value="formState.password">
-                            <template #prefix>
-                                <LockOutlined class="site-form-item-icon" />
-                            </template>
-                        </a-input-password>
+                        <div style="display: flex; align-items: center;margin-left: 0px;">
+                            <a-input-password v-model:value="formState.password">
+                                <template #prefix>
+                                    <LockOutlined class="site-form-item-icon" />
+                                </template>
+                            </a-input-password>
+                        </div>
                     </a-form-item>
 
-                    <a-form-item label="验证码" name="code" :rules="[{ required: true, message: 'Please input your verification code!' }]">
-                        <div style="display: flex; align-items: center;">  
-                        <a-input v-model:value="formState.code"></a-input>
-                        <a-button @click="sendMail" :disabled="!formState.email" style="margin-left: 10px;">获取验证码</a-button>
-                    </div>  
-                    </a-form-item>
                     <a-form-item>
                         <a-button :disabled="disabled" type="primary" html-type="submit" class="reset-form-button">
                             重置密码
@@ -41,9 +50,9 @@
         </div>
 
     </div>
-</template>  
+</template>
 <script setup>
-import { reactive, computed } from 'vue';
+import { reactive, computed, ref } from 'vue';
 import { MailOutlined, LockOutlined } from '@ant-design/icons-vue';
 import axios from 'axios';
 import { ENDPOINTS } from '@/api.config.js';
@@ -54,11 +63,28 @@ const formState = reactive({
     password: '',
     code: '',
 });
+
+const sendingDisabled = ref(false);
+const countdown = ref(0);
 // 发送邮件函数
 const sendMail = async () => {
+    if (sendingDisabled.value) return; // 如果按钮处于禁用状态，则直接返回
+    sendingDisabled.value = true; // 禁用按钮
+    countdown.value = 10; // 开始倒计时
+
+    // 倒计时逻辑
+    const intervalId = setInterval(() => {
+        countdown.value -= 1;
+        if (countdown.value <= 0) {
+            clearInterval(intervalId);
+            sendingDisabled.value = false; // 倒计时结束，重新启用按钮
+        }
+    }, 1000);
+
     try {
         const data = new FormData();
         data.append('email', formState.email)
+
         const response = await axios.post(ENDPOINTS.sendMailVerification, data, {
             withCredentials: true, // 允许跨站点访问控制（CORS）携带 cookie  
             headers: {
@@ -78,17 +104,16 @@ const sendMail = async () => {
 // 重置密码处理函数  
 const onFinish = async () => {
     try {
-        const data = new FormData();
-        data.append('username', formState.username);
-        data.append('email', formState.email);
-        data.append('password', formState.password);
-        data.append('code', formState.code)
-
-        const response = await axios.post(ENDPOINTS.register, data, {
+        // const data = new FormData();
+        // data.append('email', formState.email);
+        // data.append('password', formState.password);
+        // data.append('code', formState.code)
+        const data = JSON.stringify(formState)
+        const response = await axios.post(ENDPOINTS.forget, data, {
             withCredentials: true, // 允许跨站点访问控制（CORS）携带 cookie  
-            headers: {
-                'Content-Type': 'multipart/form-data', // 设置正确的 Content-Type  
-            },
+            // headers: {
+            //     'Content-Type': 'multipart/form-data', // 设置正确的 Content-Type  
+            // },
         });
 
         if (response.status === 200) {
@@ -133,10 +158,11 @@ const onFinishFailed = errorInfo => {
     console.log('Failed:', errorInfo);
 };
 const disabled = computed(() => {
-    return !(formState.email && formState.password && formState.username);
+    return !(formState.email && formState.password && formState.code);
 });
-</script>  
-<style scoped>  .full-screen-background {
+</script>
+<style scoped>
+.full-screen-background {
     /* 设置背景图像 */
     background-image: linear-gradient(120deg, #a6c0fe 0%, #f68084 100%);
     /* background-image: url(https://cdn.basi-a.top/images/images_tree.webp); */
