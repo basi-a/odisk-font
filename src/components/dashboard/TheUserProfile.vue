@@ -28,8 +28,9 @@
             </a-descriptions-item>
 
         </a-descriptions>
-  
+        <br/>
         <a-descriptions title="更新信息" />
+        
     </div>
 
 </template>

@@ -1,16 +1,16 @@
 <template>
   <div v-if="fileList">
 
-      <a-breadcrumb>
-        <a-breadcrumb-item>
-          <a @click="handleBucketnameClick">{{ userInfo.bucketname }}</a>
-        </a-breadcrumb-item>
+    <a-breadcrumb>
+      <a-breadcrumb-item>
+        <a @click="handleBucketnameClick">{{ userInfo.bucketname }}</a>
+      </a-breadcrumb-item>
 
-        <a-breadcrumb-item v-for="(item, index) in prefixSegments" :key="index">
-          <a v-if="index !== prefixSegments.length - 1" @click="handleBreadcrumbClick(item.path)">{{ item.name }}</a>
-          <span v-else>{{ item.name }}</span>
-        </a-breadcrumb-item>
-      </a-breadcrumb>
+      <a-breadcrumb-item v-for="(item, index) in prefixSegments" :key="index">
+        <a v-if="index !== prefixSegments.length - 1" @click="handleBreadcrumbClick(item.path)">{{ item.name }}</a>
+        <span v-else>{{ item.name }}</span>
+      </a-breadcrumb-item>
+    </a-breadcrumb>
 
 
     <br />
@@ -30,12 +30,17 @@
     <a-drawer v-model:open="drawerOpen" class="custom-class" root-class-name="root-class-name" :width="'40%'"
       placement="right">
       <div v-if=selectedRecord>
+
         <a-descriptions title="文件详情" layout="vertical" bordered>
           <a-descriptions-item label="文件名">{{ selectedRecord.name }}</a-descriptions-item>
           <a-descriptions-item label="文件类型">{{ selectedRecord.contenttype }}</a-descriptions-item>
           <a-descriptions-item label="文件大小">{{ selectedRecord.size }}</a-descriptions-item>
           <a-descriptions-item label="上一次更改">{{ selectedRecord.lastModified }}</a-descriptions-item>
         </a-descriptions>
+        <br />
+
+        <a-descriptions title="文件操作" layout="vertical" bordered></a-descriptions>
+        
 
       </div>
       <div v-else>

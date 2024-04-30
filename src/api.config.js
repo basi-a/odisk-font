@@ -2,7 +2,6 @@
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-
 export const ENDPOINTS = {
   login: `${BASE_URL}/login`,
   logout: `${BASE_URL}/logout`,
@@ -16,10 +15,18 @@ export const ENDPOINTS = {
     getDownloadUrl: `${BASE_URL}/s3/download`,
     mvOrRename: `${BASE_URL}/s3/mv`,
     mkdir: `${BASE_URL}/s3/mkdir`,
-    smallFile: `${BASE_URL}/s3/upload/small`,
-    bigFile: {
-      upload: `${BASE_URL}/s3/upload/big`,
-      create: `${BASE_URL}/s3/upload/big/create`,
-    },
+    upload: {
+      smallFile: `${BASE_URL}/s3/upload/small`,
+      bigFile: {
+        create: `${BASE_URL}/s3/upload/big/create`,
+        finish: `${BASE_URL}/s3/upload/big/finish`,
+      },
+      task: {
+        delate: `${BASE_URL}/s3/task/del`,
+        add: `${BASE_URL}/s3/task/add`,
+        done: `${BASE_URL}/s3/task/done`,
+        getlist: `${BASE_URL}/s3/task/list`,
+      }
+    }
   },
 };
