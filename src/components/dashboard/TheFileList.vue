@@ -27,7 +27,7 @@
         </template>
       </template>
     </a-table>
-    <a-drawer v-model:open="drawerOpen" class="custom-class" root-class-name="root-class-name" :width="'40%'"
+    <a-drawer v-model:open="drawerOpen" class="custom-class" root-class-name="root-class-name" :width="'20%'"
       placement="right">
       <div v-if=selectedRecord>
 
@@ -39,9 +39,17 @@
         </a-descriptions>
         <br />
 
-        <a-descriptions title="文件操作" layout="vertical" bordered></a-descriptions>
+        <a-descriptions title="文件操作" layout="vertical"></a-descriptions>
+        <div style="display: flex; align-items: center;">
+          <a-button style="width: 46%;margin-right: 2%;margin-left: 2%;">下载</a-button>
+          <a-button style="width: 46%;margin-right: 2%;margin-left: 2%;">分享</a-button>
+          
+        </div>
+        <div style="display: flex; align-items: center;">
+          <a-button style="width: 46%;margin-right: 2%;margin-left: 2%;">重命名</a-button>
+          <a-button style="width: 46%;margin-right: 2%;margin-left: 2%;">移动</a-button>
+        </div>
         
-
       </div>
       <div v-else>
         <TheEmpty />
