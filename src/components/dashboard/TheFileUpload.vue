@@ -34,14 +34,15 @@ function handleDrop(e) {
   console.log(e);
 }
 const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-
+const chunkSize = 60 * 1024 * 1024;
+const criticalFileSize = 1024 *1024 *1024; //临界文件大小 1G 
 
 const customRequest = async (options) => {
   const { file, onSuccess, onError } = options;
 
   try {
-    // 直接使用beforeUpload阶段准备的数据
-    if (file.size > 60 * 1024 * 1024) {
+    //大于1G就要分片上传啊
+    if (file.size > criticalFileSize) {
       console.log("big");
       // 大文件上传逻辑
 
@@ -114,7 +115,7 @@ async function getUploadURLsAndUploadID(file, maxPartNumber) {
     console.error('An error occurred during get filelist:', error);
   }
 }
-const chunkSize = 60 * 1024 * 1024;
+
 
 async function uploadFileParts( chunks, uploadDetails) {
   let eTags = [];
