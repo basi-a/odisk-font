@@ -41,15 +41,15 @@
 
         <a-descriptions title="文件操作" layout="vertical"></a-descriptions>
         <div style="display: flex; align-items: center;">
-          <a-button style="width: 46%;margin-right: 2%;margin-left: 2%;">下载</a-button>
+          <a-button style="width: 46%;margin-right: 2%;margin-left: 2%;" @click="Download">下载</a-button>
           <a-button style="width: 46%;margin-right: 2%;margin-left: 2%;">分享</a-button>
-          
+
         </div>
         <div style="display: flex; align-items: center;">
           <a-button style="width: 46%;margin-right: 2%;margin-left: 2%;">重命名</a-button>
           <a-button style="width: 46%;margin-right: 2%;margin-left: 2%;">移动</a-button>
         </div>
-        
+
       </div>
       <div v-else>
         <TheEmpty />
@@ -68,7 +68,7 @@ import TheEmpty from "../TheEmpty.vue";
 
 import axios from 'axios';
 import { ENDPOINTS } from '@/api.config.js';
-
+import Swal from 'sweetalert2';
 const drawerOpen = ref(false);
 const selectedRecord = ref(null);
 const showDrawer = (record) => {
@@ -98,6 +98,45 @@ const handleRowClick = (record) => {
     showDrawer(record);
   }
 };
+
+
+async function Share() {
+
+}
+async function Download() {
+  try {
+    const raw = JSON.stringify({
+      "objectname": selectedRecord.value.name,
+      "bucketname": userInfo.bucketname,
+    });
+    const response = await axios.post(ENDPOINTS.s3.getDownloadUrl, raw, {
+      withCredentials: true,
+    });
+
+    const link = document.createElement('a');
+    link.href = response.data.data.downloadUrl;
+    link.download = selectedRecord.value.name; // 设定下载文件的名称
+    document.body.appendChild(link);
+    link.click(); // 触发点击事件开始下载
+    document.body.removeChild(link); // 下载后移除该元素
+
+    Swal.fire({
+      icon: 'success',
+      title: '开始下载',
+      showConfirmButton: false,
+      timer: 1500
+    });
+  } catch (error) {
+    console.error("下载文件时发生错误:", error);
+    Swal.fire({
+      icon: 'error',
+      title: '下载失败',
+      text: '文件下载过程中出现问题，请重试。',
+      showConfirmButton: false,
+      timer: 1500
+    });
+  }
+}
 
 
 const columns = [
