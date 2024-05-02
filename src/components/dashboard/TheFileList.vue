@@ -27,12 +27,13 @@
         </template>
       </template>
     </a-table>
-    <a-drawer v-model:open="drawerOpen" class="custom-class" root-class-name="root-class-name" :width="'20%'"
+    <a-drawer v-model:open="drawerOpen" class="custom-class" root-class-name="root-class-name" :width="'30%'"
       placement="right">
       <div v-if=selectedRecord>
 
         <a-descriptions title="文件详情" layout="vertical" bordered>
-          <a-descriptions-item label="文件名">{{ selectedRecord.name }}</a-descriptions-item>
+          <a-descriptions-item label="文件对象名">{{ selectedRecord.name }}</a-descriptions-item>
+          <a-descriptions-item label="所属目录">{{ selectedRecord.prefix }}</a-descriptions-item>
           <a-descriptions-item label="文件类型">{{ selectedRecord.contenttype }}</a-descriptions-item>
           <a-descriptions-item label="文件大小">{{ selectedRecord.size }}</a-descriptions-item>
           <a-descriptions-item label="上一次更改">{{ selectedRecord.lastModified }}</a-descriptions-item>
@@ -41,19 +42,57 @@
 
         <a-descriptions title="文件操作" layout="vertical"></a-descriptions>
         <div style="display: flex; align-items: center;">
-          <a-button style="width: 46%;margin-right: 2%;margin-left: 2%;" @click="Download">下载</a-button>
-          <a-button style="width: 46%;margin-right: 2%;margin-left: 2%;">分享</a-button>
+          <a-button class="file-operation-buttons" @click="Download">下载</a-button>
+          <a-button class="file-operation-buttons" @click="handleShareClick">分享</a-button>
 
         </div>
         <div style="display: flex; align-items: center;">
-          <a-button style="width: 46%;margin-right: 2%;margin-left: 2%;">重命名</a-button>
-          <a-button style="width: 46%;margin-right: 2%;margin-left: 2%;">移动</a-button>
+          <a-button class="file-operation-buttons" @click="showRenameCard = true">重命名</a-button>
+          <a-button class="file-operation-buttons" @click="showMVCard = true">移动</a-button>
+        </div>
+        <div style="display: flex; align-items: center;">
+          <a-popconfirm title="你确定要删除这个文件？" ok-text="Yes" cancel-text="No" @confirm="confirm" @cancel="cancel">
+            <a-button class="file-operation-buttons">删除</a-button>
+          </a-popconfirm>
         </div>
 
       </div>
       <div v-else>
         <TheEmpty />
       </div>
+      <a-card v-if="showShareCard"
+        style="display: flex; align-items: center;width: 500px; max-width: calc(100% - 160px); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+        <h3>分享文件</h3>
+        <a-space style="margin-left: 3%;">
+          <a-input-number v-model:value="days" :min="0" :max="30" />days
+          <a-input-number v-model:value="hours" :min="1" :max="12" />hours
+          <a-input-number v-model:value="minutes" :min="0" :max="60" />minutes
+        </a-space>
+
+        <!-- 修改为展示URL的输入框和复制按钮 -->
+
+        <a-input-group v-if="sharedUrl" style="margin-left: 2%;margin-top: 5%;" compact>
+          <a-input type="text" :value="sharedUrl" readonly style="width: 90%"></a-input>
+          <a-button style="width: 10%;" @click="copyToClipboard(sharedUrl)">
+            <template #icon>
+              <CopyOutlined />
+            </template>
+          </a-button>
+        </a-input-group>
+
+
+        <div v-else style="text-align: center; margin-top: 16px;">
+          设置过期时间后点击确定分享以生成链接
+        </div>
+      </a-card>
+      <a-card v-if="showMVCard"
+        style="width: 500px; max-width: calc(100% - 160px); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+        <component :is=TheMV></component>
+      </a-card>
+      <a-card v-if="showRenameCard"
+        style="width: 500px; max-width: calc(100% - 160px); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+        <component :is=TheRename></component>
+      </a-card>
     </a-drawer>
   </div>
 
@@ -65,7 +104,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import TheEmpty from "../TheEmpty.vue";
-
+import { CopyOutlined } from '@ant-design/icons-vue';
 import axios from 'axios';
 import { ENDPOINTS } from '@/api.config.js';
 import Swal from 'sweetalert2';
@@ -76,6 +115,9 @@ const showDrawer = (record) => {
   drawerOpen.value = true;
 };
 
+const showShareCard = ref(false);
+const showMVCard = ref(false);
+const showRenameCard = ref(false);
 const getIcon = (contentType) => {
   return fileTypeIcons[contentType] || fileTypeIcons['default'];
 };
@@ -100,25 +142,139 @@ const handleRowClick = (record) => {
 };
 
 
-async function Share() {
+import { message } from 'ant-design-vue';
+const confirm = async e => {
+  console.log(e);
+  message.success('Click on Yes');
+  const status = await delateFile();
+  if (status === 200) {
+    Swal.fire({
+      icon: 'success',
+      title: '删除成功',
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  } else {
+    Swal.fire({
+      icon: 'error',
+      title: '复制失败',
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  }
+};
+const cancel = e => {
+  console.log(e);
+  message.error('Click on No');
+};
 
-}
-async function Download() {
+async function delateFile() {
   try {
     const raw = JSON.stringify({
-      "objectname": selectedRecord.value.name,
+      "objectname": selectedRecord.value.objectname,
       "bucketname": userInfo.bucketname,
+    });
+
+    const response = await axios.delete(ENDPOINTS.s3.delatefile, {
+      withCredentials:true,
+      data: raw,
+    } );
+    return response.status
+
+  } catch (error) {
+    console.log("删除文件失败", error)
+
+  }
+}
+
+
+
+
+const days = ref(0);
+const hours = ref(12);
+const minutes = ref(0);
+async function Share(days, hours, minutes) {
+  // days 不能大于30
+  // hours 不能大于12
+  // minutes 不能大于60
+  const downloadExpiry = days * 24 * 60 * 60 * 60 + hours * 60 * 60 + minutes * 60
+  try {
+    const raw = JSON.stringify({
+      "objectname": selectedRecord.value.objectname,
+      "bucketname": userInfo.bucketname,
+      "downloadExpiry": downloadExpiry,
     });
     const response = await axios.post(ENDPOINTS.s3.getDownloadUrl, raw, {
       withCredentials: true,
     });
 
+    // console.log(response.data.data.downloadUrl);
+    return response.data.data.downloadUrl;
+  } catch (error) {
+    console.error("获取文件下载连接失败:", error);
+  }
+
+}
+// 添加这个函数用于复制文本到剪贴板
+const copyToClipboard = (text) => {
+  navigator.clipboard.writeText(text).then(() => {
+    Swal.fire({
+      icon: 'success',
+      title: '已复制',
+      text: '分享链接已复制到剪贴板！',
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  }, () => {
+    Swal.fire({
+      icon: 'error',
+      title: '复制失败',
+      text: '复制分享链接到剪贴板时出错，请手动复制。',
+      showConfirmButton: true,
+    });
+  });
+};
+// 添加响应式变量存储分享链接
+const sharedUrl = ref('');
+
+// 调整Download函数，使其在点击分享后才执行Share函数
+async function handleShareClick() {
+  if (days.value > 0 || hours.value > 0 || minutes.value > 0) {
+    const url = await Share(days.value, hours.value, minutes.value);
+    sharedUrl.value = url;
+    // console.log(url)
+    showShareCard.value = true; // 显示分享卡片
+  } else {
+    Swal.fire({
+      icon: 'warning',
+      title: '请选择有效时间',
+      text: '请至少选择一天、小时或分钟中的一个有效时间。',
+      showConfirmButton: true,
+    });
+  }
+}
+async function Download() {
+  try {
+    const raw = JSON.stringify({
+      "objectname": selectedRecord.value.objectname,
+      "bucketname": userInfo.bucketname,
+    });
+    // console.log(raw)
+    const response = await axios.post(ENDPOINTS.s3.getDownloadUrl, raw, {
+      withCredentials: true,
+    });
+    // 创建隐藏的a标签并立即触发点击
     const link = document.createElement('a');
-    link.href = response.data.data.downloadUrl;
-    link.download = selectedRecord.value.name; // 设定下载文件的名称
+    link.href = response.data.data.DownloadUrl;
+    link.download = selectedRecord.value.objectname; // 设定下载文件的对象名称
+    link.style.display = 'none'; // 隐藏该链接
     document.body.appendChild(link);
     link.click(); // 触发点击事件开始下载
-    document.body.removeChild(link); // 下载后移除该元素
+
+    // 异步等待一段时间以确保下载开始，然后移除链接
+    setTimeout(() => {
+      document.body.removeChild(link);
+    }, 100); // 时间可以根据实际情况调整，这里设置为100毫秒作为示例
 
     Swal.fire({
       icon: 'success',
@@ -225,5 +381,12 @@ getFileList();
 
 .ant-table-striped .table-striped td {
   background-color: #fafafa;
+}
+
+.file-operation-buttons {
+  width: 46%;
+  margin-right: 2%;
+  margin-left: 2%;
+  margin-top: 2%;
 }
 </style>
