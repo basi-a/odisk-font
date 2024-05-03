@@ -47,8 +47,8 @@
 
         </div>
         <div style="display: flex; align-items: center;">
-          <a-button class="file-operation-buttons" @click="showRenameCard = true">重命名</a-button>
-          <a-button class="file-operation-buttons" @click="showMVCard = true">移动</a-button>
+          <a-button class="file-operation-buttons" @click="showRenameCard = true;">重命名</a-button>
+          <a-button class="file-operation-buttons" @click="showMVCard = true;">移动</a-button>
         </div>
         <div style="display: flex; align-items: center;">
           <a-popconfirm title="你确定要删除这个文件？" ok-text="Yes" cancel-text="No" @confirm="confirm" @cancel="cancel">
@@ -60,39 +60,57 @@
       <div v-else>
         <TheEmpty />
       </div>
-      <a-card v-if="showShareCard"
-        style="display: flex; align-items: center;width: 500px; max-width: calc(100% - 160px); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
-        <h3>分享文件</h3>
-        <a-space style="margin-left: 3%;">
-          <a-input-number v-model:value="days" :min="0" :max="30" />days
-          <a-input-number v-model:value="hours" :min="1" :max="12" />hours
-          <a-input-number v-model:value="minutes" :min="0" :max="60" />minutes
-        </a-space>
+      <a-card v-if="showShareCard || showMVCard || showRenameCard"
+        style="width: 500px; max-width: calc(100% - 160px); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+        <div v-if="showShareCard">
+          <h3>分享文件</h3>
+          <a-space style="margin-left: 3%;">
+            <a-input-number v-model:value="days" :min="0" :max="30" />days
+            <a-input-number v-model:value="hours" :min="1" :max="12" />hours
+            <a-input-number v-model:value="minutes" :min="0" :max="60" />minutes
+          </a-space>
 
-        <!-- 修改为展示URL的输入框和复制按钮 -->
+          <a-input-group v-if="sharedUrl" style="margin-left: 2%;margin-top: 5%;" compact>
+            <a-input type="text" :value="sharedUrl" readonly style="width: 90%"></a-input>
+            <a-button style="width: 10%;" @click="copyToClipboard(sharedUrl)">
+              <template #icon>
+                <CopyOutlined />
+              </template>
+            </a-button>
+          </a-input-group>
 
-        <a-input-group v-if="sharedUrl" style="margin-left: 2%;margin-top: 5%;" compact>
-          <a-input type="text" :value="sharedUrl" readonly style="width: 90%"></a-input>
-          <a-button style="width: 10%;" @click="copyToClipboard(sharedUrl)">
-            <template #icon>
-              <CopyOutlined />
-            </template>
-          </a-button>
-        </a-input-group>
-
-
-        <div v-else style="text-align: center; margin-top: 16px;">
-          设置过期时间后点击确定分享以生成链接
+          <div v-else style="text-align: center; margin-top: 16px;">
+            设置过期时间后点击确定分享以生成链接
+          </div>
+        </div>
+        <div v-else-if="showMVCard">
+          <h3>移动</h3>
+          <a-input-group compact>
+            <a-input type="text" v-model:value="destPrefix" placeholder="请输入文件夹路径, 例如: `scripts/bash/`"
+              style="width: 85%;" />
+            <a-button @click="movefile" style="width: 15%;">
+              <template #icon>
+                <SendOutlined />
+              </template>
+            </a-button>
+          </a-input-group>
+          <p>当路径为空或"/"时, 则会移动到根目录</p>
+        </div>
+        <div v-else-if="showRenameCard">
+          <h3>重命名</h3>
+          <a-input-group compact>
+            <a-input type="text" v-model:value="newName" placeholder="请输入新的文件名, 例如: `Apifox.appimage`"
+              style="width: 85%;" />
+            <a-button @click="renamefile" style="width: 15%;">
+              <template #icon>
+                <EditOutlined />
+              </template>
+            </a-button>
+          </a-input-group>
         </div>
       </a-card>
-      <a-card v-if="showMVCard"
-        style="width: 500px; max-width: calc(100% - 160px); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
-        <component :is=TheMV></component>
-      </a-card>
-      <a-card v-if="showRenameCard"
-        style="width: 500px; max-width: calc(100% - 160px); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
-        <component :is=TheRename></component>
-      </a-card>
+      <div v-if="showShareCard || showMVCard || showRenameCard" class="overlay" @click="hideCard" />
+
     </a-drawer>
   </div>
 
@@ -108,10 +126,13 @@
 
 <script setup>
 import { ref, computed } from "vue";
+
 import TheEmpty from "../TheEmpty.vue";
-import { 
-  CopyOutlined, 
-  ReloadOutlined 
+import {
+  CopyOutlined,
+  ReloadOutlined,
+  EditOutlined,
+  SendOutlined
 } from '@ant-design/icons-vue';
 import axios from 'axios';
 import { ENDPOINTS } from '@/api.config.js';
@@ -126,6 +147,12 @@ const showDrawer = (record) => {
 const showShareCard = ref(false);
 const showMVCard = ref(false);
 const showRenameCard = ref(false);
+const hideCard = () => {
+  showShareCard.value = false;
+  showMVCard.value = false;
+  showRenameCard.value = false;
+};
+
 const getIcon = (contentType) => {
   return fileTypeIcons[contentType] || fileTypeIcons['default'];
 };
@@ -187,6 +214,7 @@ async function delateFile() {
       withCredentials: true,
       data: raw,
     });
+    getFileList();
     return response.status
 
   } catch (error) {
@@ -244,7 +272,9 @@ const copyToClipboard = (text) => {
 const sharedUrl = ref('');
 
 // 调整Download函数，使其在点击分享后才执行Share函数
-async function handleShareClick() {
+const handleShareClick = async () => {
+  showMVCard.value = false;
+  showRenameCard.value = false;
   if (days.value > 0 || hours.value > 0 || minutes.value > 0) {
     const url = await Share(days.value, hours.value, minutes.value);
     sharedUrl.value = url;
@@ -259,7 +289,7 @@ async function handleShareClick() {
     });
   }
 }
-async function Download() {
+const Download = async () => {
   try {
     const raw = JSON.stringify({
       "objectname": selectedRecord.value.objectname,
@@ -294,6 +324,77 @@ async function Download() {
       icon: 'error',
       title: '下载失败',
       text: '文件下载过程中出现问题，请重试。',
+      showConfirmButton: false,
+      timer: 1500
+    });
+  }
+}
+
+const destPrefix = ref("");
+const movefile = async () => {
+  // 判断并处理destPrefix
+  destPrefix.value = destPrefix.value.trim(); // 先去除前后空白
+  if (destPrefix.value === '/' || destPrefix.value === '') {
+    destPrefix.value = ''; // 设置为空
+  } else if (!destPrefix.value.endsWith('/')) {
+    // 确保destPrefix以'/'结尾，如果不包含，则添加
+    destPrefix.value += '/';
+  }
+  try {
+    const raw = JSON.stringify({
+      "srcbucketname": userInfo.bucketname,
+      "srcobjectname": userInfo.objectname,
+      "destobjectName": destPrefix + selectedRecord.value.name,
+    });
+    const response = await axios.post(ENDPOINTS.s3.mvOrRename, raw, {
+      withCredentials: true,
+    });
+    if (response.status === 200) {
+      Swal.fire({
+        icon: 'success',
+        title: '移动完成',
+        showConfirmButton: false,
+        timer: 1500
+      });
+    }
+    getFileList();
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: '移动失败',
+      text: '过程中出现问题，请重试。',
+      showConfirmButton: false,
+      timer: 1500
+    });
+  }
+}
+const newName = ref("");
+const renamefile = async () => {
+  newName.value = destPrefix.value.trim();
+  try {
+    const raw = JSON.stringify({
+      "srcbucketname": userInfo.bucketname,
+      "srcobjectname": userInfo.objectname,
+      "destobjectName": selectedRecord.value.prefix + newName,
+    });
+    const response = await axios.post(ENDPOINTS.s3.mvOrRename, raw, {
+      withCredentials: true,
+    });
+    if (response.status === 200) {
+      Swal.fire({
+        icon: 'success',
+        title: '重命名完成',
+        showConfirmButton: false,
+        timer: 1500
+      });
+    }
+    getFileList();
+  } catch (error) {
+    console.log("重命名失败", error)
+    Swal.fire({
+      icon: 'error',
+      title: '重命名失败',
+      text: '过程中出现问题，请重试。',
       showConfirmButton: false,
       timer: 1500
     });
@@ -376,7 +477,7 @@ async function getFileList() {
 
 const handleRefresh = async () => {
   const status = await getFileList();
-  if (status === 200 ){
+  if (status === 200) {
     message.success("Refresh Success.");
   }
 }
@@ -401,5 +502,15 @@ getFileList();
   margin-right: 2%;
   margin-left: 2%;
   margin-top: 2%;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
 }
 </style>

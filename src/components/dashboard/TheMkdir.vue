@@ -21,7 +21,8 @@ import { ref } from "vue";
 const dirname = ref("");
 
 const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-async function mkdir() {
+const mkdir = async () => {
+    dirname.value = dirname.value.trim();
     try {
         const raw = JSON.stringify({
             "bucketname": userInfo.bucketname,

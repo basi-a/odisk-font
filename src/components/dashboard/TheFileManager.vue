@@ -19,19 +19,18 @@
             </template>
         </a-float-button>
 
-        <a-card v-if="showFileUploadCard"
+        <a-card v-if="showFileUploadCard || showMkdirCard"
             style="width: 500px; max-width: calc(100% - 160px); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
-            <component :is=TheFileUpload></component>
-        </a-card>
-        <a-card v-if="showMkdirCard"
-            style="width: 500px; max-width: calc(100% - 160px); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
-            <component :is=TheMkdir></component>
+            <div v-if="showFileUploadCard">
+                <component :is=TheFileUpload></component>
+            </div>
+            <div v-if="showMkdirCard">
+                <component :is=TheMkdir></component>
+            </div>
         </a-card>
 
         <!-- Add a transparent overlay to capture clicks outside the card -->
-        <div v-if="showFileUploadCard" class="overlay" @click="hideFileUploadCard" />
-        <div v-if="showMkdirCard" class="overlay" @click="hideShowMkdirCard" />
-
+        <div v-if="showFileUploadCard || showMkdirCard" class="overlay" @click="hideCard" />
 
         <component :is=TheFileList></component>
 
@@ -51,10 +50,8 @@ import {
 const showFileUploadCard = ref(false);
 const showMkdirCard = ref(false);
 
-function hideFileUploadCard() {
+function hideCard() {
     showFileUploadCard.value = false;
-}
-function hideShowMkdirCard() {
     showMkdirCard.value = false;
 }
 </script>
