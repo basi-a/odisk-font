@@ -9,6 +9,11 @@ export const ENDPOINTS = {
   forget: `${BASE_URL}/reset`,
   sendMailVerification: `${BASE_URL}/emailVerify`,
   getUserInfo: `${BASE_URL}/userInfo`,
+  users: {
+    updete: `${BASE_URL}/users/update`,
+    delate: `${BASE_URL}/users/delate`,
+    list: `${BASE_URL}/users/list`,
+  },
   s3: {
     delatefile: `${BASE_URL}/s3/delate`,
     filelist: `${BASE_URL}/s3/list`,

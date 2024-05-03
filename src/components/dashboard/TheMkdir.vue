@@ -16,7 +16,7 @@ import axios from 'axios';
 import { ref } from "vue";
 const dirname = ref("");
 const currentPrefix = sessionStorage.getItem("currentPrefix");
-const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+const userInfo = ref(JSON.parse(localStorage.getItem('userInfo')));
 const mkdir = async () => {
     dirname.value = dirname.value.trim();
     const fullPath = ref("");

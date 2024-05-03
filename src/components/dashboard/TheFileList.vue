@@ -156,7 +156,7 @@ const hideCard = () => {
 const getIcon = (contentType) => {
   return fileTypeIcons[contentType] || fileTypeIcons['default'];
 };
-const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+const userInfo = ref(JSON.parse(localStorage.getItem('userInfo')));
 const fileTypeIcons = {
   'directory': '/icons/folder.svg',
   'image/png': '/icons/image.svg', // PNG图片图标

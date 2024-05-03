@@ -90,8 +90,7 @@ const components = {
 };
 
 const currentComponent = shallowRef(components[selectedKeys.value[0]]);
-// console.log(selectedKeys.value)
-// console.log(selectedKeys.value[0])
+
 const onSelect = (item) => {
     const { key } = item;
     selectedKeys.value[0] = key;

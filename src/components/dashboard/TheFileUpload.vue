@@ -19,7 +19,6 @@ import { message } from 'ant-design-vue';
 import { ENDPOINTS } from '@/api.config.js';
 import axios from 'axios';
 
-
 const fileList = ref([]);
 const handleChange = info => {
   const status = info.file.status;
@@ -36,7 +35,7 @@ const handleChange = info => {
 function handleDrop(e) {
   console.log(e);
 }
-const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+const userInfo = ref(JSON.parse(localStorage.getItem('userInfo')));
 const chunkSize = 60 * 1024 * 1024;
 const criticalFileSize = 1024 *1024 *1024; //临界文件大小 1G 
 const currentPrefix = sessionStorage.getItem("currentPrefix");
