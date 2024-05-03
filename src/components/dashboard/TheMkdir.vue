@@ -1,17 +1,13 @@
 <template>
 
     <h1>创建文件夹</h1>
-    <a-input-group compact>
-        <a-input v-model:value="dirname" placeholder="请输入文件夹路径, 例如: `scripts/bash/`" style="width: 85%;" />
+    
+    <span>当前: /{{currentPrefix}}</span>
+    <a-input-group compact style="margin-top: 2%;">
+        <a-input v-model:value="dirname" placeholder="请输入目录, 例如: `scripts/bash/`" style="width: 85%;" />
         <a-button type="primary" @click="mkdir" style="width: 15%;">创建</a-button>
     </a-input-group>
-
-
-    <h1>文件夹目录输入规则:</h1>
-    <p>从根目录下的顶级文件夹开始，一层一层书写,</p>
-    <p>以 `/` 结尾，例如：`scripts/bash/`</p>
-
-
+    <p style="margin-top: 2%;">tip: 当从`/`开始写时, 会从根目录开始创建</p>
 </template>
 <script setup>
 import { ENDPOINTS } from "@/api.config.js";
@@ -19,14 +15,20 @@ import Swal from 'sweetalert2';
 import axios from 'axios';
 import { ref } from "vue";
 const dirname = ref("");
-
+const currentPrefix = sessionStorage.getItem("currentPrefix");
 const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 const mkdir = async () => {
     dirname.value = dirname.value.trim();
+    const fullPath = ref("");
+    if (dirname.value.startsWith('/')){
+        fullPath.value = dirname.value.slice(1);;
+    }else{
+        fullPath.value = currentPrefix+dirname.value;
+    };
     try {
         const raw = JSON.stringify({
             "bucketname": userInfo.bucketname,
-            "dirname": dirname.value,
+            "dirname": fullPath.value,
         });
         const response = await axios.post(ENDPOINTS.s3.mkdir, raw, {
             withCredentials: true,

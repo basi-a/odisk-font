@@ -170,6 +170,7 @@ const handleRowClick = (record) => {
     // 更新前缀以包含当前文件夹路径
     prefix.value = record.prefix || record.name;
     // 重新获取子文件列表
+    sessionStorage.setItem("currentPrefix", prefix.value);
     getFileList();
   } else {
     showDrawer(record);
@@ -441,18 +442,20 @@ const prefixSegments = computed(() => {
 // 处理面包屑点击事件
 const handleBreadcrumbClick = (path) => {
   prefix.value = path;
+  sessionStorage.setItem("currentPrefix", prefix.value);
   getFileList();
 };
 
 const handleBucketnameClick = () => {
   prefix.value = "";
+  sessionStorage.setItem("currentPrefix", prefix.value);
   getFileList();
 }
 
 // 更改变量名以保持一致性
 const fileList = ref(null);
 const prefix = ref("");
-
+sessionStorage.setItem("currentPrefix", prefix.value);
 async function getFileList() {
   try {
     const raw = JSON.stringify({

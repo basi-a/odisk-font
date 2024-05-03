@@ -18,6 +18,8 @@ import { InboxOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import { ENDPOINTS } from '@/api.config.js';
 import axios from 'axios';
+
+
 const fileList = ref([]);
 const handleChange = info => {
   const status = info.file.status;
@@ -26,6 +28,7 @@ const handleChange = info => {
   }
   if (status === 'done') {
     message.success(`${info.file.name} file uploaded successfully.`);
+
   } else if (status === 'error') {
     message.error(`${info.file.name} file upload failed.`);
   }
@@ -36,20 +39,19 @@ function handleDrop(e) {
 const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 const chunkSize = 60 * 1024 * 1024;
 const criticalFileSize = 1024 *1024 *1024; //临界文件大小 1G 
-
+const currentPrefix = sessionStorage.getItem("currentPrefix");
 const customRequest = async (options) => {
   const { file, onSuccess, onError } = options;
-
+  const objectname = currentPrefix+file.name;
   try {
     //大于1G就要分片上传啊
     if (file.size > criticalFileSize) {
       console.log("big");
       // 大文件上传逻辑
-
       const partsAndIndex = await cutAndIndexFile(file);
-      const uploadDetails = await getUploadURLsAndUploadID(file, partsAndIndex.maxPartNumber);
+      const uploadDetails = await getUploadURLsAndUploadID(objectname, partsAndIndex.maxPartNumber);
       const eTags = await uploadFileParts( partsAndIndex.chunks, uploadDetails);//上传分片
-      const ok = await completeMultipartUpload(file, uploadDetails.uploadID, partsAndIndex.maxPartNumber, eTags);//通知合并分片
+      const ok = await completeMultipartUpload(objectname, uploadDetails.uploadID, partsAndIndex.maxPartNumber, eTags);//通知合并分片
       if (ok === true) {
         onSuccess("Large file uploaded successfully.");
         file.status = "done";
@@ -61,7 +63,7 @@ const customRequest = async (options) => {
     } else {
       console.log("small");
       // 小文件直接上传
-      const simpleUploadUrl = await getUploadURL(file)
+      const simpleUploadUrl = await getUploadURL(objectname)
       await singleFileUpload(simpleUploadUrl, file);
       onSuccess("Small file uploaded successfully.");
       file.status = "done";
@@ -75,11 +77,11 @@ const customRequest = async (options) => {
 
 
 // 辅助函数定义（请根据实际情况实现）
-async function getUploadURL(file) {
+async function getUploadURL(objectname) {
   try {
     const raw = JSON.stringify({
       "bucketname": userInfo.bucketname,
-      "objectname": file.name,
+      "objectname": objectname,
     });
     // 使用JSON传递数据
     const response = await axios.post(ENDPOINTS.s3.upload.smallFile, raw, {
@@ -93,12 +95,12 @@ async function getUploadURL(file) {
     console.error('An error occurred during get uploadUrl:', error);
   }
 }
-async function getUploadURLsAndUploadID(file, maxPartNumber) {
+async function getUploadURLsAndUploadID(objectname, maxPartNumber) {
 
   try {
     const raw = JSON.stringify({
       "bucketname": userInfo.bucketname,
-      "objectname": file.name,
+      "objectname": objectname,
       "maxPartNumber": maxPartNumber,
     });
 
@@ -134,11 +136,11 @@ async function uploadFileParts( chunks, uploadDetails) {
   return eTags
 }
 
-async function completeMultipartUpload(file, uploadID, maxPartNumber, eTags) {
+async function completeMultipartUpload(objectname, uploadID, maxPartNumber, eTags) {
   try {
     const raw = JSON.stringify({
       "bucketname": userInfo.bucketname,
-      "objectname": file.name,
+      "objectname": objectname,
       "uploadID": uploadID,
       "maxPartNumber": maxPartNumber,
       "eTags": eTags,

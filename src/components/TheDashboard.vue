@@ -136,6 +136,7 @@ const logout = async () => {
 
         document.cookie = `session_id=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
         localStorage.removeItem('userInfo')
+        sessionStorage.removeItem("currentPrefix");
         router.push('/login');
     } catch (error) {
         console.error('Error logging out:', error);
