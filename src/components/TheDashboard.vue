@@ -56,10 +56,14 @@
                     </a-dropdown>
                 </a-layout-header>
                 <a-layout-content style="margin: 0 14px">
-
-                    <component :is=currentComponent></component>
+                    <div v-if="selectedKeys[0] === '1' || selectedKeys[0] === '2' || selectedKeys[0] === '3'">
+                        <component :is=currentComponent ></component>
+                    </div>
+                    <div v-if="selectedKeys[0] === '4'">
+                        <component :is=currentComponent @updateUserInfo="handleUpdateUserInfoFromChild"></component>
+                    </div>
                 </a-layout-content>
-                <!-- <a-layout-footer style="text-align: center; height: 10px;">asgfasg</a-layout-footer> -->
+
             </a-layout>
         </a-layout>
     </div>
@@ -119,7 +123,10 @@ const onClick = (item) => {
         logout();
     }
 };
-
+const handleUpdateUserInfoFromChild = (newUserInfo) => {
+    // 接收子组件传来的 userInfo 更新自身状态
+    userInfo.value = newUserInfo;
+};
 const goToProfile = () => {
     selectedKeys.value = ['4'];
     currentComponent.value = components[selectedKeys.value[0]];

@@ -157,6 +157,7 @@ const getIcon = (contentType) => {
   return fileTypeIcons[contentType] || fileTypeIcons['default'];
 };
 const userInfo = ref(JSON.parse(localStorage.getItem('userInfo')));
+
 const fileTypeIcons = {
   'directory': '/icons/folder.svg',
   'image/png': '/icons/image.svg', // PNG图片图标
@@ -208,7 +209,7 @@ async function delateFile() {
   try {
     const raw = JSON.stringify({
       "objectname": selectedRecord.value.objectname,
-      "bucketname": userInfo.bucketname,
+      "bucketname": userInfo.value.bucketname,
     });
 
     const response = await axios.delete(ENDPOINTS.s3.delatefile, {
@@ -236,7 +237,7 @@ async function Share(days, hours, minutes) {
   try {
     const raw = JSON.stringify({
       "objectname": selectedRecord.value.objectname,
-      "bucketname": userInfo.bucketname,
+      "bucketname": userInfo.value.bucketname,
       "downloadExpiry": downloadExpiry,
     });
     const response = await axios.post(ENDPOINTS.s3.getDownloadUrl, raw, {
@@ -294,7 +295,7 @@ const Download = async () => {
   try {
     const raw = JSON.stringify({
       "objectname": selectedRecord.value.objectname,
-      "bucketname": userInfo.bucketname,
+      "bucketname": userInfo.value.bucketname,
     });
     // console.log(raw)
     const response = await axios.post(ENDPOINTS.s3.getDownloadUrl, raw, {
@@ -343,7 +344,7 @@ const movefile = async () => {
   }
   try {
     const raw = JSON.stringify({
-      "srcbucketname": userInfo.bucketname,
+      "srcbucketname": userInfo.value.bucketname,
       "srcobjectname": userInfo.objectname,
       "destobjectName": destPrefix + selectedRecord.value.name,
     });
@@ -374,7 +375,7 @@ const renamefile = async () => {
   newName.value = destPrefix.value.trim();
   try {
     const raw = JSON.stringify({
-      "srcbucketname": userInfo.bucketname,
+      "srcbucketname": userInfo.value.bucketname,
       "srcobjectname": userInfo.objectname,
       "destobjectName": selectedRecord.value.prefix + newName,
     });
@@ -459,7 +460,7 @@ sessionStorage.setItem("currentPrefix", prefix.value);
 async function getFileList() {
   try {
     const raw = JSON.stringify({
-      "bucketname": userInfo.bucketname,
+      "bucketname": userInfo.value.bucketname,
       "prefix": prefix.value
     });
     // 使用JSON传递数据

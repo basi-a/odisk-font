@@ -27,7 +27,7 @@ const mkdir = async () => {
     };
     try {
         const raw = JSON.stringify({
-            "bucketname": userInfo.bucketname,
+            "bucketname": userInfo.value.bucketname,
             "dirname": fullPath.value,
         });
         const response = await axios.post(ENDPOINTS.s3.mkdir, raw, {

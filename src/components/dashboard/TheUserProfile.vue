@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { reactive, computed, ref } from 'vue';
+import { reactive, computed, ref, defineEmits } from 'vue';
 import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons-vue';
 import axios from 'axios';
 import { ENDPOINTS } from '@/api.config.js';
@@ -92,6 +92,7 @@ import Swal from 'sweetalert2';
 const drawerOpen = ref(false);
 // 创建一个响应式的ref对象来存储userInfo数据
 const userInfo = ref(JSON.parse(localStorage.getItem('userInfo')));
+const emit = defineEmits(['updateUserInfo']); // 定义自定义事件名称
 const formState = reactive({
     username: '',
     email: '',
@@ -186,13 +187,16 @@ const onFinish = async () => {
                 withCredentials: true,
             });
             userInfo.value = response.data.data;
-            localStorage.setItem('userInfo', JSON.stringify(response.data.data));
+            localStorage.setItem('userInfo', JSON.stringify(userInfo.value));
+            emit('updateUserInfo', userInfo.value);
         } catch (error) {
             console.log(error)
         }
     }
-
 };
+
+
+
 const onFinishFailed = errorInfo => {
     console.log('Failed:', errorInfo);
 };

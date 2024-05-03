@@ -79,7 +79,7 @@ const customRequest = async (options) => {
 async function getUploadURL(objectname) {
   try {
     const raw = JSON.stringify({
-      "bucketname": userInfo.bucketname,
+      "bucketname": userInfo.value.bucketname,
       "objectname": objectname,
     });
     // 使用JSON传递数据
@@ -98,7 +98,7 @@ async function getUploadURLsAndUploadID(objectname, maxPartNumber) {
 
   try {
     const raw = JSON.stringify({
-      "bucketname": userInfo.bucketname,
+      "bucketname": userInfo.value.bucketname,
       "objectname": objectname,
       "maxPartNumber": maxPartNumber,
     });
@@ -138,7 +138,7 @@ async function uploadFileParts( chunks, uploadDetails) {
 async function completeMultipartUpload(objectname, uploadID, maxPartNumber, eTags) {
   try {
     const raw = JSON.stringify({
-      "bucketname": userInfo.bucketname,
+      "bucketname": userInfo.value.bucketname,
       "objectname": objectname,
       "uploadID": uploadID,
       "maxPartNumber": maxPartNumber,
