@@ -99,12 +99,20 @@
   <div v-else>
     <TheEmpty />
   </div>
+  <a-float-button shape="circle" @click="handleRefresh" :style="{ right: '80px', bottom: '220px', }">
+    <template #icon>
+      <ReloadOutlined />
+    </template>
+  </a-float-button>
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
 import TheEmpty from "../TheEmpty.vue";
-import { CopyOutlined } from '@ant-design/icons-vue';
+import { 
+  CopyOutlined, 
+  ReloadOutlined 
+} from '@ant-design/icons-vue';
 import axios from 'axios';
 import { ENDPOINTS } from '@/api.config.js';
 import Swal from 'sweetalert2';
@@ -176,9 +184,9 @@ async function delateFile() {
     });
 
     const response = await axios.delete(ENDPOINTS.s3.delatefile, {
-      withCredentials:true,
+      withCredentials: true,
       data: raw,
-    } );
+    });
     return response.status
 
   } catch (error) {
@@ -194,9 +202,7 @@ const days = ref(0);
 const hours = ref(12);
 const minutes = ref(0);
 async function Share(days, hours, minutes) {
-  // days 不能大于30
-  // hours 不能大于12
-  // minutes 不能大于60
+
   const downloadExpiry = days * 24 * 60 * 60 * 60 + hours * 60 * 60 + minutes * 60
   try {
     const raw = JSON.stringify({
@@ -362,9 +368,16 @@ async function getFileList() {
 
     // 赋值给fileList
     fileList.value = response.data.data;
-
+    return response.status
   } catch (error) {
     console.error('An error occurred during get filelist:', error);
+  }
+}
+
+const handleRefresh = async () => {
+  const status = await getFileList();
+  if (status === 200 ){
+    message.success("Refresh Success.");
   }
 }
 
