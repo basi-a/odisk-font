@@ -1,6 +1,6 @@
 <template>
   <a-upload-dragger v-model:fileList="fileList" name="file" :multiple="true" :custom-request="customRequest"
-    :progress="progressStyle" @change="handleChange" @drop="handleDrop">
+    :progress="progress" @change="handleChange" @drop="handleDrop">
     <!-- :before-upload="beforeUpload" -->
     <br />
     <p class="ant-upload-drag-icon">
@@ -38,10 +38,10 @@ function handleDrop(e) {
   console.log(e);
 }
 
-const progressStyle = {
+const progress = {
   strokeColor: {
-    '0%': '#108ee9',
-    '100%': '#87d068',
+    '0%': '#fbc2eb',
+    '100%': '#a6c1ee',
   },
   strokeWidth: 5,
   format: percent => `${parseFloat(percent.toFixed(2))}%`,
@@ -61,7 +61,7 @@ const customRequest = async (options) => {
       const partsAndIndex = await cutAndIndexFile(file);
       const uploadDetailsAndTaskID = await getUploadURLsAndUploadID(file, objectname, partsAndIndex.maxPartNumber);
       const eTags = await uploadFileParts(partsAndIndex.chunks, uploadDetailsAndTaskID.uploadDetails, uploadDetailsAndTaskID.taskID, file, onProgress);//上传分片
-      const ok = await completeMultipartUpload(objectname, uploadDetailsAndTaskID.uploadDetails.uploadID, partsAndIndex.maxPartNumber, eTags);//通知合并分片
+      const ok = await completeMultipartUpload(objectname, uploadDetailsAndTaskID.uploadDetails.uploadID, partsAndIndex.maxPartNumber, eTags, uploadDetailsAndTaskID.taskID);//通知合并分片
       if (ok === true) {
         onSuccess("Large file uploaded successfully.", file);
       } else {
@@ -103,7 +103,7 @@ async function getUploadURL(file, objectname) {
       }
     });
     console.log(response)
-    const taskID = await saveTaskInfo(file, objectname, "");
+    const taskID = await saveTaskInfo(file, objectname, "----");
 
     const url = response.data.data.uploadUrl;
     // console.log(saveTaskResp)
@@ -162,7 +162,7 @@ async function uploadFileParts(chunks, uploadDetails, taskID, currentFile, onPro
   return eTags
 }
 
-async function completeMultipartUpload(objectname, uploadID, maxPartNumber, eTags) {
+async function completeMultipartUpload(objectname, uploadID, maxPartNumber, eTags, taskID) {
   try {
     const raw = JSON.stringify({
       "bucketname": userInfo.value.bucketname,
@@ -176,7 +176,7 @@ async function completeMultipartUpload(objectname, uploadID, maxPartNumber, eTag
     const response = await axios.post(ENDPOINTS.s3.upload.bigFile.finish, raw, {
       withCredentials: true,
     });
-    const ok = await TaskDone(objectname)
+    const ok = await TaskDone(taskID)
     if (response.status === 200 && ok) {
       return true
     }
@@ -199,7 +199,7 @@ async function singleFileUpload(url, file, objectname, taskID, onProgress) {
       },
     });
 
-    const ok = await TaskDone(objectname)
+    const ok = await TaskDone( taskID)
     if (response.status === 200 && ok) {
       return true
     }
@@ -274,11 +274,12 @@ async function updatePrecent(taskID, percent) {
   }
 }
 
-async function TaskDone(objectname) {
+async function TaskDone( taskID) {
   try {
     const raw = JSON.stringify({
-      "bucketname": userInfo.value.bucketname,
-      "objectname": objectname,
+      // "bucketname": userInfo.value.bucketname,
+      // "objectname": objectname,
+      "taskID": taskID,
     });
     const response = await axios.put(ENDPOINTS.s3.upload.task.done, raw, {
       withCredentials: true,

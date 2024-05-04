@@ -13,21 +13,11 @@
                         <span>文件管理</span>
                     </a-menu-item>
 
-                    <a-sub-menu key="sub1">
-                        <template #title>
-                            <span>
-                                <CarryOutOutlined />
-                                <span>任务管理</span>
-                            </span>
-                        </template>
-                        <a-menu-item key="2">
-                            <span>进行中</span>
-                        </a-menu-item>
-                        <a-menu-item key="3">
-                            <span>已完成</span>
-                        </a-menu-item>
-                    </a-sub-menu>
-                    <a-menu-item key="4">
+                    <a-menu-item key="2">
+                        <CarryOutOutlined />
+                        <span>任务管理</span>
+                    </a-menu-item>
+                    <a-menu-item key="3">
                         <UserOutlined />
                         <span>个人中心</span>
                     </a-menu-item>
@@ -56,10 +46,10 @@
                     </a-dropdown>
                 </a-layout-header>
                 <a-layout-content style="margin: 0 14px">
-                    <div v-if="selectedKeys[0] === '1' || selectedKeys[0] === '2' || selectedKeys[0] === '3'">
-                        <component :is=currentComponent ></component>
+                    <div v-if="selectedKeys[0] === '1' || selectedKeys[0] === '2'">
+                        <component :is=currentComponent></component>
                     </div>
-                    <div v-if="selectedKeys[0] === '4'">
+                    <div v-if="selectedKeys[0] === '3'">
                         <component :is=currentComponent @updateUserInfo="handleUpdateUserInfoFromChild"></component>
                     </div>
                 </a-layout-content>
@@ -81,16 +71,14 @@ import { ENDPOINTS } from '@/api.config.js';
 import router from '@/router'
 import Swal from 'sweetalert2';
 import TheFileManager from "./dashboard/TheFileManager.vue";
-import TheTaskDone from "./dashboard/TheTaskDone.vue";
-import TheTaskDoing from "./dashboard/TheTaskDoing.vue";
+import TheTaskList from "./dashboard/TheTaskList.vue";
 import TheDashboarUserProfile from './dashboard/TheUserProfile.vue';
 const collapsed = ref(false);
 const selectedKeys = ref(['1']);
 const components = {
     '1': TheFileManager,
-    '2': TheTaskDoing, // Add components for tasks
-    '3': TheTaskDone, // Add components for tasks
-    '4': TheDashboarUserProfile,
+    '2': TheTaskList, // Add components for tasks
+    '3': TheDashboarUserProfile,
 };
 
 const currentComponent = shallowRef(components[selectedKeys.value[0]]);

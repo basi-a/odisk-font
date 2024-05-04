@@ -31,7 +31,7 @@ export const ENDPOINTS = {
         add: `${BASE_URL}/s3/upload/task/add`,
         done: `${BASE_URL}/s3/upload/task/done`,
         percentUpdate: `${BASE_URL}/s3/upload/task/percent/update`,
-        getPercent: `${BASE_URL}/s3/upload/task/percent/`,
+        getPercent: `${BASE_URL}/s3/upload/task/percent`,
         getlist: `${BASE_URL}/s3/upload/task/list`,
       }
     }

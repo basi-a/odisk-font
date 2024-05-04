@@ -14,17 +14,17 @@
 
 
     <br />
-    <a-table class="ant-table-striped" :columns="columns" :data-source="fileList" :scroll="{ x: 400, y: 900 }"
+    <a-table class="ant-table-striped" :columns="columns" :data-source="fileList" :scroll="{ x: 400, y: 900 }" :pagination="pagination"
       :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" bordered>
       <template #bodyCell="{ column, record }">
-        <template v-if="column.dataIndex === 'name'">
+        <!-- <template v-if="column.dataIndex === 'name'"> -->
           <template v-if="column.dataIndex === 'name'">
             <img :src="getIcon(record.contenttype)" class="file-icon" />
             <a v-if="record.contenttype !== 'directory'" @click="showDrawer(record)">{{ record[column.dataIndex]
               }}</a>
             <span v-else @click="handleRowClick(record)"><a>{{ record[column.dataIndex] }}</a></span>
           </template>
-        </template>
+        <!-- </template> -->
       </template>
     </a-table>
     <a-drawer v-model:open="drawerOpen" class="custom-class" root-class-name="root-class-name" :width="'30%'"
@@ -125,7 +125,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed,reactive } from "vue";
 
 import TheEmpty from "../TheEmpty.vue";
 import {
@@ -429,6 +429,30 @@ const columns = [
   },
 
 ];
+
+const pagination = reactive({
+    // 表格分页的配置
+    current: 1,
+    pageSize: 10,
+    showSizeChanger: true, // 用于控制展示每页多少条的下拉
+    // showQuickJumper: true,
+    total: 0,
+    pageSizeOptions: ['10', '20', '50'],
+    showTotal: (total) => `共 ${total} 条`,
+    onShowSizeChange: pageSizeChange,
+    onChange: pageChange
+})
+// 页数改变的方法
+function pageSizeChange(val, pageNum) {
+    pagination.pageSize = pageNum // 修改每页显示的条数
+    pagination.current = 1
+}
+// 点击上一页下一页的方法
+function pageChange(page, val) {
+    console.log(page, val)
+    pagination.current = page
+}
+
 // 计算面包屑内容
 const prefixSegments = computed(() => {
   const segments = prefix.value.split('/');
