@@ -1,5 +1,5 @@
 <template>
-  <a-upload-dragger v-model:fileList="fileList" name="file" :multiple="true" :custom-request="customRequest"
+  <a-upload-dragger v-model:fileList="fileList" name="file" :multiple="true" :custom-request="customRequest" :progress="progress"
     @change="handleChange" @drop="handleDrop">
     <!-- :before-upload="beforeUpload" -->
     <br />
@@ -37,6 +37,15 @@ const handleChange = info => {
 function handleDrop(e) {
   console.log(e);
 }
+
+const progressStyle = {
+  strokeColor: {
+    '0%': '#108ee9',
+    '100%': '#87d068',
+  },
+  strokeWidth: 5,
+  format: percent => `${parseFloat(percent.toFixed(2))}%`,
+};
 
 const userInfo = ref(JSON.parse(localStorage.getItem('userInfo')));
 const chunkSize = 60 * 1024 * 1024;
