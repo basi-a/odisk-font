@@ -27,10 +27,12 @@ export const ENDPOINTS = {
         finish: `${BASE_URL}/s3/upload/big/finish`,
       },
       task: {
-        delate: `${BASE_URL}/s3/task/del`,
-        add: `${BASE_URL}/s3/task/add`,
-        done: `${BASE_URL}/s3/task/done`,
-        getlist: `${BASE_URL}/s3/task/list`,
+        delate: `${BASE_URL}/s3/upload/task/del`,
+        add: `${BASE_URL}/s3/upload/task/add`,
+        done: `${BASE_URL}/s3/upload/task/done`,
+        percentUpdate: `${BASE_URL}/s3/upload/task/percent/update`,
+        getPercent: `${BASE_URL}/s3/upload/task/percent/`,
+        getlist: `${BASE_URL}/s3/upload/task/list`,
       }
     }
   },

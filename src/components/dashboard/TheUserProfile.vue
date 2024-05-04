@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { reactive, computed, ref, defineEmits } from 'vue';
+import { reactive, computed, ref } from 'vue';
 import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons-vue';
 import axios from 'axios';
 import { ENDPOINTS } from '@/api.config.js';

@@ -1,6 +1,6 @@
 <template>
-  <a-upload-dragger v-model:fileList="fileList" name="file" :multiple="true" :custom-request="customRequest" :progress="progress"
-    @change="handleChange" @drop="handleDrop">
+  <a-upload-dragger v-model:fileList="fileList" name="file" :multiple="true" :custom-request="customRequest"
+    :progress="progressStyle" @change="handleChange" @drop="handleDrop">
     <!-- :before-upload="beforeUpload" -->
     <br />
     <p class="ant-upload-drag-icon">
@@ -22,7 +22,7 @@ import axios from 'axios';
 const fileList = ref([]);
 const handleChange = info => {
   const { file, fileList } = info;
-  
+
   const status = file.status;
   if (status !== 'uploading') {
     console.log(file, fileList)
@@ -57,12 +57,11 @@ const customRequest = async (options) => {
   try {
     //大于1G就要分片上传啊
     if (file.size > criticalFileSize) {
-      // console.log("big");
       // 大文件上传逻辑
       const partsAndIndex = await cutAndIndexFile(file);
-      const uploadDetails = await getUploadURLsAndUploadID(objectname, partsAndIndex.maxPartNumber);
-      const eTags = await uploadFileParts(partsAndIndex.chunks, uploadDetails, file, onProgress);//上传分片
-      const ok = await completeMultipartUpload(objectname, uploadDetails.uploadID, partsAndIndex.maxPartNumber, eTags);//通知合并分片
+      const uploadDetailsAndTaskID = await getUploadURLsAndUploadID(file, objectname, partsAndIndex.maxPartNumber);
+      const eTags = await uploadFileParts(partsAndIndex.chunks, uploadDetailsAndTaskID.uploadDetails, uploadDetailsAndTaskID.taskID, file, onProgress);//上传分片
+      const ok = await completeMultipartUpload(objectname, uploadDetailsAndTaskID.uploadDetails.uploadID, partsAndIndex.maxPartNumber, eTags);//通知合并分片
       if (ok === true) {
         onSuccess("Large file uploaded successfully.", file);
       } else {
@@ -70,10 +69,10 @@ const customRequest = async (options) => {
       }
 
     } else {
-      // console.log("small");
       // 小文件直接上传
-      const simpleUploadUrl = await getUploadURL(objectname)
-      const ok = await singleFileUpload(simpleUploadUrl, file, onProgress);
+      const urlAndTaskID = await getUploadURL(file, objectname)
+
+      const ok = await singleFileUpload(urlAndTaskID.url, file, objectname, urlAndTaskID.taskID, onProgress);
       if (ok === true) {
         onSuccess("Small file uploaded successfully.", file);
       } else {
@@ -88,14 +87,14 @@ const customRequest = async (options) => {
 }
 
 
-
 // 辅助函数定义（请根据实际情况实现）
-async function getUploadURL(objectname) {
+async function getUploadURL(file, objectname) {
   try {
     const raw = JSON.stringify({
       "bucketname": userInfo.value.bucketname,
       "objectname": objectname,
     });
+    console.log(raw)
     // 使用JSON传递数据
     const response = await axios.post(ENDPOINTS.s3.upload.smallFile, raw, {
       withCredentials: true,
@@ -103,12 +102,17 @@ async function getUploadURL(objectname) {
         "Content-Type": "application/json"
       }
     });
-    return response.data.data.uploadUrl
+    console.log(response)
+    const taskID = await saveTaskInfo(file, objectname, "");
+
+    const url = response.data.data.uploadUrl;
+    // console.log(saveTaskResp)
+    return { url, taskID }
   } catch (error) {
     console.error('An error occurred during get uploadUrl:', error);
   }
 }
-async function getUploadURLsAndUploadID(objectname, maxPartNumber) {
+async function getUploadURLsAndUploadID(file, objectname, maxPartNumber) {
 
   try {
     const raw = JSON.stringify({
@@ -124,15 +128,17 @@ async function getUploadURLsAndUploadID(objectname, maxPartNumber) {
         "Content-Type": "application/json"
       }
     });
+    const uploadDetails = response.data.data;
+    const taskID = await saveTaskInfo(file, objectname, uploadDetails.uploadID);
     // console.log(response)
-    return response.data.data
+    return { uploadDetails, taskID }
   } catch (error) {
     console.error('An error occurred during get filelist:', error);
   }
 }
 
 
-async function uploadFileParts(chunks, uploadDetails, currentFile, onProgress) {
+async function uploadFileParts(chunks, uploadDetails, taskID, currentFile, onProgress) {
   let eTags = [];
   let uploadedChunks = 0; // 已上传的分片数
   for (let i = 0; i < chunks.length; i++) {
@@ -146,7 +152,8 @@ async function uploadFileParts(chunks, uploadDetails, currentFile, onProgress) {
 
       // 更新进度
       const percent = Math.round((uploadedChunks / chunks.length) * 100);
-      onProgress({percent: percent}, currentFile);
+      onProgress({ percent: percent }, currentFile);
+      updatePrecent(taskID, percent);
     } catch (error) {
       console.error('An error occurred during upload:', error);
     }
@@ -169,16 +176,16 @@ async function completeMultipartUpload(objectname, uploadID, maxPartNumber, eTag
     const response = await axios.post(ENDPOINTS.s3.upload.bigFile.finish, raw, {
       withCredentials: true,
     });
-    if (response.status !== 200) {
-      return false
+    const ok = await TaskDone(objectname)
+    if (response.status === 200 && ok) {
+      return true
     }
-    return true
   } catch (error) {
     console.error('An error occurred during upload:', error);
     return false
   }
 }
-async function singleFileUpload(url, file, onProgress) {
+async function singleFileUpload(url, file, objectname, taskID, onProgress) {
   try {
     // 使用JSON传递数据
     const response = await axios.put(url, file, {
@@ -187,14 +194,16 @@ async function singleFileUpload(url, file, onProgress) {
       },
       onUploadProgress: (progressEvent) => {
         const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        onProgress({percent: percent}, file);
+        onProgress({ percent: percent }, file);
+        updatePrecent(taskID, percent);
       },
     });
-    // console.log(file.percent)
-    if (response.status === 200){
+
+    const ok = await TaskDone(objectname)
+    if (response.status === 200 && ok) {
       return true
     }
-    // console.log(response);
+
   } catch (error) {
     console.error('An error occurred during upload:', error);
     return false
@@ -223,4 +232,64 @@ async function cutAndIndexFile(file) {
   // 返回分片数组及其下标数组
   return { chunks, maxPartNumber };
 }
+
+// 放在上传之前
+async function saveTaskInfo(file, objectname, uploadID) {
+
+  try {
+    const raw = JSON.stringify({
+      "bucketname": userInfo.value.bucketname,
+      "objectname": objectname,
+      "uploadID": uploadID,
+      "filename": file.name,
+      "size": file.size,
+    });
+
+    const response = await axios.put(ENDPOINTS.s3.upload.task.add, raw, {
+      withCredentials: true,
+    });
+    if (response.status === 200) {
+      return response.data.data.taskID
+    }
+  } catch (error) {
+    console.log(error)
+    return -10086
+  }
+}
+
+async function updatePrecent(taskID, percent) {
+  try {
+    const raw = JSON.stringify({
+      "taskID": taskID,
+      "percent": percent,
+    });
+    const response = await axios.put(ENDPOINTS.s3.upload.task.percentUpdate, raw, {
+      withCredentials: true,
+    });
+    if (response.status == 200) {
+      console.log(taskID, "percent updated")
+    }
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+async function TaskDone(objectname) {
+  try {
+    const raw = JSON.stringify({
+      "bucketname": userInfo.value.bucketname,
+      "objectname": objectname,
+    });
+    const response = await axios.put(ENDPOINTS.s3.upload.task.done, raw, {
+      withCredentials: true,
+    });
+    if (response.status === 200) {
+      return true
+    }
+  } catch (error) {
+    console.log(error)
+    return false
+  }
+}
+
 </script>
