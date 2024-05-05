@@ -49,12 +49,12 @@ const userInfo = ref(JSON.parse(localStorage.getItem('userInfo')));
 const tasklist = ref(null);
 const columns = [
 
-    {
-        title: 'Task ID',
-        dataIndex: 'ID',
-        width: 60,
+    // {
+    //     title: 'Task ID',
+    //     dataIndex: 'ID',
+    //     width: 60,
 
-    },
+    // },
     {
         title: 'Upload ID',
         dataIndex: 'uploadID',
@@ -68,12 +68,12 @@ const columns = [
     {
         title: 'Size',
         dataIndex: 'size',
-        width: 100,
+        width: 80,
     },
     {
         title: 'Status / Progress',
         dataIndex: 'status',
-        width: 150,
+        width: 200,
     }
 ];
 const pagination = reactive({
@@ -111,7 +111,7 @@ const getTaskList = async () => {
         //     tasklist.value = response.data.data;
         // }
         if (response.status === 200) {
-            tasklist.value = response.data.data;
+            tasklist.value = response.data.data.sort((a, b) => new Date(b.CreatedAt) - new Date(a.CreatedAt));
             // 初始化所有任务的进度信息
             response.data.data.forEach(task => {
                 taskProgress[task.ID] = task.status ? 100 : 0; // 根据status初始化进度
@@ -150,7 +150,7 @@ const getPercent = async (taskID) => {
         });
         const percent = response.data.data.percent;
         taskProgress[taskID] = percent; // 更新进度映射
-        // percent.value = response.data.data.percent;
+
         // 检查进度是否达到100%，如果是则更新状态
         if (percent === 100) {
             const taskToUpdate = tasklist.value.find(task => task.ID === taskID);

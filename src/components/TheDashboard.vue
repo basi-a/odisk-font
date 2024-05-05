@@ -32,9 +32,9 @@
                         <a class="ant-dropdown-link" @click.prevent>
 
                             <span>你好，{{ userInfo.username }}</span>
-                            <a-avatar style="margin-left:10px; "
+                            <!-- <a-avatar style="margin-left:10px; "
                                 src=" https://q2.qlogo.cn/headimg_dl?dst_uin=3188765573&spec=100"
-                                size="medium"></a-avatar>
+                                size="medium"></a-avatar> -->
                         </a>
 
                         <template #overlay>

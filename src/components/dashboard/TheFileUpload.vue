@@ -1,6 +1,6 @@
 <template>
   <a-upload-dragger v-model:fileList="fileList" name="file" :multiple="true" :custom-request="customRequest"
-    :progress="progress" @change="handleChange" @drop="handleDrop">
+    :progress="progress" @change="handleChange" @drop="handleDrop" @remove="handleRemove">
     <!-- :before-upload="beforeUpload" -->
     <br />
     <p class="ant-upload-drag-icon">
@@ -38,6 +38,36 @@ function handleDrop(e) {
   console.log(e);
 }
 
+const fileDetailsMap = ref(new Map());
+const handleRemove = async (file) => {
+  file.status = "removed";
+
+  const details = fileDetailsMap.value.get(file.uid);
+  // console.log(details)
+  fileDetailsMap.value.set(file.uid, { objectname: details.objectname, uploadID: details.uploadID, taskID: details.taskID, status: file.status });
+
+  if (cancel) {
+    cancel(); // Call the cancel function to interrupt ongoing uploads
+  }
+
+}
+async function TaskAbort(objectname, uploadID, taskID) {
+  try {
+    const raw = JSON.stringify({
+      "bucketname": userInfo.value.bucketname,
+      "objectname": objectname,
+      "uploadID": uploadID,
+      "taskID": taskID
+    });
+    const response = await axios.delete(ENDPOINTS.s3.upload.task.abort, {
+      withCredentials: true,
+      data: raw,
+    });
+    console.log(response)
+  } catch (error) {
+    console.log(error)
+  }
+};
 const progress = {
   strokeColor: {
     '0%': '#fbc2eb',
@@ -54,25 +84,27 @@ const currentPrefix = sessionStorage.getItem("currentPrefix");
 const customRequest = async (options) => {
   const { file, onSuccess, onError, onProgress } = options;
   const objectname = currentPrefix + file.name;
+
   try {
     //大于1G就要分片上传啊
     if (file.size > criticalFileSize) {
+
       // 大文件上传逻辑
       const partsAndIndex = await cutAndIndexFile(file);
       const uploadDetailsAndTaskID = await getUploadURLsAndUploadID(file, objectname, partsAndIndex.maxPartNumber);
-      const eTags = await uploadFileParts(partsAndIndex.chunks, uploadDetailsAndTaskID.uploadDetails, uploadDetailsAndTaskID.taskID, file, onProgress);//上传分片
-      const ok = await completeMultipartUpload(objectname, uploadDetailsAndTaskID.uploadDetails.uploadID, partsAndIndex.maxPartNumber, eTags, uploadDetailsAndTaskID.taskID);//通知合并分片
+      const eTagsAndStatus = await uploadFileParts(partsAndIndex.chunks, uploadDetailsAndTaskID.uploadDetails, uploadDetailsAndTaskID.taskID, file, onProgress);//上传分片
+      const ok = await completeMultipartUpload(file, objectname, uploadDetailsAndTaskID.uploadDetails.uploadID, partsAndIndex.maxPartNumber, eTagsAndStatus, uploadDetailsAndTaskID.taskID);//通知合并分片
       if (ok === true) {
         onSuccess("Large file uploaded successfully.", file);
       } else {
-        onError("Large file uploaded complete Multipart faild", file);
+        onError("Large file uploaded complete Multipart faild or abort", file);
       }
 
     } else {
       // 小文件直接上传
       const urlAndTaskID = await getUploadURL(file, objectname)
 
-      const ok = await singleFileUpload(urlAndTaskID.url, file, objectname, urlAndTaskID.taskID, onProgress);
+      const ok = await singleFileUpload(urlAndTaskID.url, file, urlAndTaskID.taskID, onProgress);
       if (ok === true) {
         onSuccess("Small file uploaded successfully.", file);
       } else {
@@ -85,7 +117,6 @@ const customRequest = async (options) => {
     message.error('File upload failed: ' + error.message);
   }
 }
-
 
 // 辅助函数定义（请根据实际情况实现）
 async function getUploadURL(file, objectname) {
@@ -106,12 +137,16 @@ async function getUploadURL(file, objectname) {
     const taskID = await saveTaskInfo(file, objectname, "----");
 
     const url = response.data.data.uploadUrl;
-    // console.log(saveTaskResp)
+
+    fileDetailsMap.value.set(file.uid, { objectname: objectname, uploadID: "----", taskID: taskID, status: "uploading" });
+
     return { url, taskID }
   } catch (error) {
     console.error('An error occurred during get uploadUrl:', error);
   }
 }
+
+
 async function getUploadURLsAndUploadID(file, objectname, maxPartNumber) {
 
   try {
@@ -130,7 +165,10 @@ async function getUploadURLsAndUploadID(file, objectname, maxPartNumber) {
     });
     const uploadDetails = response.data.data;
     const taskID = await saveTaskInfo(file, objectname, uploadDetails.uploadID);
-    // console.log(response)
+
+    console.log(file)
+    fileDetailsMap.value.set(file.uid, { objectname: objectname, uploadID: uploadDetails.uploadID, taskID: taskID, status: "uploading" });
+    // }
     return { uploadDetails, taskID }
   } catch (error) {
     console.error('An error occurred during get filelist:', error);
@@ -138,10 +176,29 @@ async function getUploadURLsAndUploadID(file, objectname, maxPartNumber) {
 }
 
 
-async function uploadFileParts(chunks, uploadDetails, taskID, currentFile, onProgress) {
+async function uploadFileParts(chunks, uploadDetails, taskID, file, onProgress) {
   let eTags = [];
   let uploadedChunks = 0; // 已上传的分片数
   for (let i = 0; i < chunks.length; i++) {
+    // if (getStatus(file) === "removed") {
+    //   console.log("uploadFileParts() status removed")
+    const details = fileDetailsMap.value.get(file.uid);
+    if (details.status === "removed") {
+      try {
+        await TaskAbort(details.objectname, details.uploadID, details.taskID);
+        // 设置文件状态为已删除
+        // file.status = 'removed';
+        // 从fileList和映射表中移除
+        // fileList.value = fileList.value.filter(item => item.uid !== file.uid);
+        fileDetailsMap.value.delete(file.uid);
+      } catch (error) {
+        console.error('Error removing task:', error);
+        // 处理错误情况
+      }
+      const status = details.status
+      return { eTags, status }
+    }
+
     const url = uploadDetails.presignedURLs[i];
     const chunk = chunks[i];
     try {
@@ -152,24 +209,29 @@ async function uploadFileParts(chunks, uploadDetails, taskID, currentFile, onPro
 
       // 更新进度
       const percent = Math.round((uploadedChunks / chunks.length) * 100);
-      onProgress({ percent: percent }, currentFile);
+      onProgress({ percent: percent }, file);
       updatePrecent(taskID, percent);
     } catch (error) {
       console.error('An error occurred during upload:', error);
     }
   }
-
-  return eTags
+  const status = "done"
+  return { eTags, status }
 }
 
-async function completeMultipartUpload(objectname, uploadID, maxPartNumber, eTags, taskID) {
+async function completeMultipartUpload(file, objectname, uploadID, maxPartNumber, eTagsAndStatus, taskID) {
+
+  if (eTagsAndStatus.status === "removed") {
+    return false
+  }
+
   try {
     const raw = JSON.stringify({
       "bucketname": userInfo.value.bucketname,
       "objectname": objectname,
       "uploadID": uploadID,
       "maxPartNumber": maxPartNumber,
-      "eTags": eTags,
+      "eTags": eTagsAndStatus.eTags,
     });
     // console.log(raw);
 
@@ -185,7 +247,14 @@ async function completeMultipartUpload(objectname, uploadID, maxPartNumber, eTag
     return false
   }
 }
-async function singleFileUpload(url, file, objectname, taskID, onProgress) {
+
+
+
+const ChancelToken = axios.CancelToken;
+let cancel;
+
+async function singleFileUpload(url, file, taskID, onProgress) {
+
   try {
     // 使用JSON传递数据
     const response = await axios.put(url, file, {
@@ -197,20 +266,45 @@ async function singleFileUpload(url, file, objectname, taskID, onProgress) {
         onProgress({ percent: percent }, file);
         updatePrecent(taskID, percent);
       },
-    });
 
-    const ok = await TaskDone( taskID)
+      cancelToken: new ChancelToken(function executor(c) {
+        cancel = c;
+      })
+    })
+    // console.log("singleFileUpload", fileDetailsMap.value)
+    const details = fileDetailsMap.value.get(file.uid);
+    // console.log(details)
+    if (details.status === "removed") {
+      // console.log(details.status)
+      try {
+        await TaskAbort(details.objectname, details.uploadID, details.taskID);
+
+        fileDetailsMap.value.delete(file.uid);
+      } catch (error) {
+        console.error('Error removing task:', error);
+        // 处理错误情况
+      }
+      return false
+    }
+
+    const ok = await TaskDone(taskID)
     if (response.status === 200 && ok) {
       return true
     }
-
   } catch (error) {
-    console.error('An error occurred during upload:', error);
-    return false
+    if (axios.isCancel(error)) {
+      // 如果请求被用户取消，这里可以静默处理或者执行一些清理工作
+      console.log('Upload cancelled by user');
+      return false; // 或者根据需要处理
+    } else {
+      console.error('An error occurred during upload:', error);
+      return false;
+    }
   }
 }
-async function cutAndIndexFile(file) {
 
+async function cutAndIndexFile(file) {
+  // console.log(file.size)
   const chunks = [];
   let start = 0;
   const fileSize = file.size;
@@ -274,11 +368,9 @@ async function updatePrecent(taskID, percent) {
   }
 }
 
-async function TaskDone( taskID) {
+async function TaskDone(taskID) {
   try {
     const raw = JSON.stringify({
-      // "bucketname": userInfo.value.bucketname,
-      // "objectname": objectname,
       "taskID": taskID,
     });
     const response = await axios.put(ENDPOINTS.s3.upload.task.done, raw, {
@@ -292,5 +384,6 @@ async function TaskDone( taskID) {
     return false
   }
 }
+
 
 </script>
