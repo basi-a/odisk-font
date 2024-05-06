@@ -183,7 +183,7 @@ import { message } from 'ant-design-vue';
 const confirm = async e => {
   console.log(e);
   message.success('Click on Yes');
-  const status = await delateFile();
+  const status = await deleteFile();
   if (status === 200) {
     Swal.fire({
       icon: 'success',
@@ -194,7 +194,7 @@ const confirm = async e => {
   } else {
     Swal.fire({
       icon: 'error',
-      title: '复制失败',
+      title: '删除失败',
       showConfirmButton: false,
       timer: 1500,
     });
@@ -205,16 +205,15 @@ const cancel = e => {
   message.error('Click on No');
 };
 
-async function delateFile() {
+async function deleteFile() {
   try {
     const raw = JSON.stringify({
       "objectname": selectedRecord.value.objectname,
       "bucketname": userInfo.value.bucketname,
     });
 
-    const response = await axios.delete(ENDPOINTS.s3.delatefile, {
+    const response = await axios.post(ENDPOINTS.s3.delatefile, raw, {
       withCredentials: true,
-      data: raw,
     });
     getFileList();
     return response.status

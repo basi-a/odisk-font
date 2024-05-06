@@ -42,15 +42,21 @@ const fileDetailsMap = ref(new Map());
 const handleRemove = async (file) => {
   file.status = "removed";
 
-  const details = fileDetailsMap.value.get(file.uid);
-  // console.log(details)
-  fileDetailsMap.value.set(file.uid, { objectname: details.objectname, uploadID: details.uploadID, taskID: details.taskID, status: file.status });
+  updateFileStatusToRemoved(file.uid);
 
+}
+
+const updateFileStatusToRemoved = (fileUID) => {
+  const details = fileDetailsMap.value.get(fileUID);
+  if (details) {
+    fileDetailsMap.value.set(fileUID, { objectname: details.objectname, uploadID: details.uploadID, taskID: details.taskID, status: "removed" }); // Update the file details map
+  }
   if (cancel) {
     cancel(); // Call the cancel function to interrupt ongoing uploads
   }
+};
 
-}
+
 async function TaskAbort(objectname, uploadID, taskID) {
   try {
     const raw = JSON.stringify({
@@ -59,9 +65,8 @@ async function TaskAbort(objectname, uploadID, taskID) {
       "uploadID": uploadID,
       "taskID": taskID
     });
-    const response = await axios.delete(ENDPOINTS.s3.upload.task.abort, {
+    const response = await axios.post(ENDPOINTS.s3.upload.task.abort, raw,{
       withCredentials: true,
-      data: raw,
     });
     console.log(response)
   } catch (error) {
@@ -180,16 +185,12 @@ async function uploadFileParts(chunks, uploadDetails, taskID, file, onProgress) 
   let eTags = [];
   let uploadedChunks = 0; // 已上传的分片数
   for (let i = 0; i < chunks.length; i++) {
-    // if (getStatus(file) === "removed") {
-    //   console.log("uploadFileParts() status removed")
+
     const details = fileDetailsMap.value.get(file.uid);
     if (details.status === "removed") {
       try {
         await TaskAbort(details.objectname, details.uploadID, details.taskID);
-        // 设置文件状态为已删除
-        // file.status = 'removed';
-        // 从fileList和映射表中移除
-        // fileList.value = fileList.value.filter(item => item.uid !== file.uid);
+
         fileDetailsMap.value.delete(file.uid);
       } catch (error) {
         console.error('Error removing task:', error);

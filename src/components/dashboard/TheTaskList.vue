@@ -13,12 +13,21 @@
                 :pagination="pagination"
                 :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" bordered>
                 <template #bodyCell="{ column, record }">
+                    <template v-if="column.dataIndex === 'objectname'">
+
+                        <span><a @click="showDrawer(record)">{{ record[column.dataIndex] }}</a></span>
+                    </template>
                     <template v-if="column.dataIndex === 'status'">
-                        <div v-if="record.status === false">
-                            <a-progress :stroke-color="{ '0%': '#fbc2eb', '100%': '#a6c1ee', }" :percent="getRecordPercent(record)" />
-                            <!-- background-image:linear-gradient(0deg,#fbc2eb 0%, #a6c1ee 100%) -->
+                        <div v-if="record.status === 'removed'">
+                            <a-progress :stroke-color="{ '0%': '#fbc2eb', '100%': '#a6c1ee', }" :percent="0"
+                                status="exception" />
                         </div>
-                        <div v-if="record.status === true">
+                        <div v-if="record.status === 'uploading'">
+                            <a-progress :stroke-color="{ '0%': '#fbc2eb', '100%': '#a6c1ee', }"
+                                :percent="getRecordPercent(record)" />
+                        </div>
+                        <div v-if="record.status === 'done'">
+
                             <a-progress :stroke-color="{ '0%': '#fbc2eb', '100%': '#a6c1ee', }" :percent="100" />
                         </div>
                     </template>
@@ -28,6 +37,35 @@
         <div v-else>
             <component :is=TheEmpty></component>
         </div>
+        <a-drawer v-model:open="drawerOpen" class="custom-class" root-class-name="root-class-name" :width="'30%'"
+            placement="right">
+            <div v-if=selectedRecord>
+                <a-descriptions title="任务详情" layout="vertical" bordered>
+                    <a-descriptions-item label="Object Name">{{ selectedRecord.objectname }}</a-descriptions-item>
+                    <a-descriptions-item label="uploadID">{{ selectedRecord.uploadID }}</a-descriptions-item>
+                    <a-descriptions-item label="Task ID">{{ selectedRecord.ID }}</a-descriptions-item>
+                    <a-descriptions-item label="Size">{{ selectedRecord.size }}</a-descriptions-item>
+                    <a-descriptions-item label="Status">{{ selectedRecord.status }}</a-descriptions-item>
+                </a-descriptions>
+                <br />
+
+                <a-descriptions title="任务操作" layout="vertical"></a-descriptions>
+
+                <div style="display: flex; align-items: center;">
+                    <a-popconfirm title="你确定要删除这个任务记录？" ok-text="Yes" cancel-text="No" @confirm="taskdel"
+                        @cancel="cancel">
+                        <a-button class="file-operation-buttons">删除</a-button>
+                    </a-popconfirm>
+
+                    <a-popconfirm title="你确定要取消？" ok-text="Yes" cancel-text="No" @confirm="taskAbort"
+                        v-if="selectedRecord.status === 'uploading'" @cancel="cancel">
+                        <a-button class="file-operation-buttons">取消上传</a-button>
+                    </a-popconfirm>
+
+                </div>
+            </div>
+        </a-drawer>
+
         <a-float-button shape="circle" @click="handleRefresh" :style="{ right: '80px', bottom: '220px', }">
             <template #icon>
                 <ReloadOutlined />
@@ -38,6 +76,7 @@
 
 <script setup>
 import { ref, reactive, onUnmounted } from "vue";
+
 import axios from 'axios';
 import { ENDPOINTS } from '@/api.config.js';
 import TheEmpty from "../TheEmpty.vue";
@@ -47,28 +86,27 @@ import {
 
 const userInfo = ref(JSON.parse(localStorage.getItem('userInfo')));
 const tasklist = ref(null);
+const drawerOpen = ref(false);
+const selectedRecord = ref(null);
+const showDrawer = (record) => {
+    selectedRecord.value = record;
+    drawerOpen.value = true;
+};
 const columns = [
-
-    // {
-    //     title: 'Task ID',
-    //     dataIndex: 'ID',
-    //     width: 60,
-
-    // },
+    {
+        title: 'Object Name',
+        dataIndex: 'objectname',
+        width: 100,
+    },
     {
         title: 'Upload ID',
         dataIndex: 'uploadID',
         width: 150,
     },
     {
-        title: 'Object Name',
-        dataIndex: 'objectname',
-        width: 200,
-    },
-    {
         title: 'Size',
         dataIndex: 'size',
-        width: 80,
+        width: 50,
     },
     {
         title: 'Status / Progress',
@@ -106,10 +144,7 @@ const getTaskList = async () => {
         const response = await axios.post(ENDPOINTS.s3.upload.task.getlist, raw, {
             withCredentials: true,
         });
-        // console.log(response)
-        // if (response.status === 200) {
-        //     tasklist.value = response.data.data;
-        // }
+
         if (response.status === 200) {
             tasklist.value = response.data.data.sort((a, b) => new Date(b.CreatedAt) - new Date(a.CreatedAt));
             // 初始化所有任务的进度信息
@@ -130,15 +165,67 @@ const handleRefresh = async () => {
         message.success("Refresh Success.");
     }
 }
+import { message } from 'ant-design-vue';
+const taskdel = async () => {
+    message.success('Click on Yes');
+    const raw = JSON.stringify({ "taskID": selectedRecord.value.ID });
+    try {
+        const response = await axios.post(ENDPOINTS.s3.upload.task.delate,raw ,{
+            withCredentials: true,
+        });
+        if (response.status === 200) {
+            Swal.fire({
+                icon: 'success',
+                title: '删除成功',
+                showConfirmButton: false,
+                timer: 1500,
+            });
+        }
+    } catch (error) {
 
-// 新增：用于存储每个任务ID对应的进度
+    }
+    handleRefresh();
+}
+
+const taskAbort = async () => {
+    message.success('Click on Yes');
+    try {
+        const raw = JSON.stringify({
+            "bucketname": userInfo.value.bucketname,
+            "objectname": selectedRecord.value.objectname,
+            "uploadID": selectedRecord.value.uploadID,
+            "taskID": selectedRecord.value.ID,
+        });
+        const response = await axios.delete(ENDPOINTS.s3.upload.task.abort, {
+            withCredentials: true,
+            data: raw,
+        });
+        if (response.status === 200) {
+            Swal.fire({
+                icon: 'success',
+                title: '删除成功',
+                showConfirmButton: false,
+                timer: 1500,
+            });
+        }
+    } catch (error) {
+
+    }
+    handleRefresh();
+}
+
+const cancel = e => {
+    console.log(e);
+    message.error('Click on No');
+};
+// 用于存储每个任务ID对应的进度
 const taskProgress = reactive({});
-// 新增方法：根据record获取进度百分比
+// 根据record获取进度百分比
 const getRecordPercent = (record) => {
-  return taskProgress[record.ID] || 0; // 如果找不到对应ID的进度，则默认返回0
+    return taskProgress[record.ID] || 0; // 如果找不到对应ID的进度，则默认返回0
 };
 
-// 新增：定期更新进度的定时器标识
+// 定期更新进度的定时器标识
 let progressUpdateTimer;
 
 const getPercent = async (taskID) => {
@@ -167,33 +254,39 @@ const getPercent = async (taskID) => {
 const initProgressUpdate = () => {
     progressUpdateTimer = setInterval(() => {
         tasklist.value.forEach(task => {
-            if (!task.status) {
-                getPercent(task.ID); // 只更新状态为false的任务
+            if (task.status === "uploading"){
+                getPercent(task.ID);
             }
         });
-    }, 1000);
+    }, 1500);
 };
 // 新增：在组件卸载时清理定时器
 onUnmounted(() => {
     clearInterval(progressUpdateTimer);
 });
 
-// // 修改getTaskList方法，初始化时调用getPercent更新进度
-// const getTaskList = async () => {
-//     // ...（保留原有的getTaskList逻辑）
-//     if (response.status === 200) {
-//         tasklist.value = response.data.data;
-//         // 初始化所有任务的进度信息
-//         response.data.data.forEach(task => {
-//             taskProgress[task.ID] = task.status ? 100 : 0; // 根据status初始化进度
-//         });
-//         initProgressUpdate(); // 初始化定时器
-//     }
-// };
+
 </script>
 
 <style>
 .ant-table-striped .table-striped td {
     background-color: #fafafa;
+}
+
+.file-operation-buttons {
+    width: 46%;
+    margin-right: 2%;
+    margin-left: 2%;
+    margin-top: 2%;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
 }
 </style>

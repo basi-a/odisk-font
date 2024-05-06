@@ -28,6 +28,7 @@ export const ENDPOINTS = {
       },
       task: {
         abort: `${BASE_URL}/s3/upload/task/abort`,
+        delate: `${BASE_URL}/s3/upload/task/del`,
         add: `${BASE_URL}/s3/upload/task/add`,
         done: `${BASE_URL}/s3/upload/task/done`,
         percentUpdate: `${BASE_URL}/s3/upload/task/percent/update`,

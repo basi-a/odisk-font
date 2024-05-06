@@ -32,9 +32,7 @@
                         <a class="ant-dropdown-link" @click.prevent>
 
                             <span>你好，{{ userInfo.username }}</span>
-                            <!-- <a-avatar style="margin-left:10px; "
-                                src=" https://q2.qlogo.cn/headimg_dl?dst_uin=3188765573&spec=100"
-                                size="medium"></a-avatar> -->
+
                         </a>
 
                         <template #overlay>
@@ -72,13 +70,13 @@ import router from '@/router'
 import Swal from 'sweetalert2';
 import TheFileManager from "./dashboard/TheFileManager.vue";
 import TheTaskList from "./dashboard/TheTaskList.vue";
-import TheDashboarUserProfile from './dashboard/TheUserProfile.vue';
+import TheUserProfile from './dashboard/TheUserProfile.vue';
 const collapsed = ref(false);
 const selectedKeys = ref(['1']);
 const components = {
     '1': TheFileManager,
     '2': TheTaskList, // Add components for tasks
-    '3': TheDashboarUserProfile,
+    '3': TheUserProfile,
 };
 
 const currentComponent = shallowRef(components[selectedKeys.value[0]]);
@@ -116,7 +114,7 @@ const handleUpdateUserInfoFromChild = (newUserInfo) => {
     userInfo.value = newUserInfo;
 };
 const goToProfile = () => {
-    selectedKeys.value = ['4'];
+    selectedKeys.value = ['3'];
     currentComponent.value = components[selectedKeys.value[0]];
 };
 
