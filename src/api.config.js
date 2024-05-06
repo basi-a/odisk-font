@@ -1,5 +1,7 @@
 // api.config.js
 
+import { update } from "lodash";
+
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export const ENDPOINTS = {
@@ -11,15 +13,20 @@ export const ENDPOINTS = {
   getUserInfo: `${BASE_URL}/userInfo`,
   users: {
     updete: `${BASE_URL}/users/update`,
-    delate: `${BASE_URL}/users/delate`,
+    delete: `${BASE_URL}/users/delete`,
     list: `${BASE_URL}/users/list`,
   },
   s3: {
-    delatefile: `${BASE_URL}/s3/delate`,
+    deletefile: `${BASE_URL}/s3/delete`,
     filelist: `${BASE_URL}/s3/list`,
     getDownloadUrl: `${BASE_URL}/s3/download`,
     mvOrRename: `${BASE_URL}/s3/mv`,
     mkdir: `${BASE_URL}/s3/mkdir`,
+    bucketmap: {
+      delate: `${BASE_URL}/s3/bucketmap/del`,
+      list: `${BASE_URL}/s3/bucketmap/list`,
+      update: `${BASE_URL}/s3/bucketmap/update`,
+    },
     upload: {
       smallFile: `${BASE_URL}/s3/upload/small`,
       bigFile: {
@@ -28,7 +35,7 @@ export const ENDPOINTS = {
       },
       task: {
         abort: `${BASE_URL}/s3/upload/task/abort`,
-        delate: `${BASE_URL}/s3/upload/task/del`,
+        delete: `${BASE_URL}/s3/upload/task/del`,
         add: `${BASE_URL}/s3/upload/task/add`,
         done: `${BASE_URL}/s3/upload/task/done`,
         percentUpdate: `${BASE_URL}/s3/upload/task/percent/update`,

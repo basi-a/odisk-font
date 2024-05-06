@@ -44,7 +44,7 @@
                     </a-input>
                 </a-form-item>
 
-                <a-form-item label="邮箱" name="email" :rules="[{ required: true, message: 'Please input your email!' }]">
+                <a-form-item label="邮箱" name="email" :rules="[{ required: false, message: 'Please input your email!' }]">
                     <a-input v-model:value="formState.email">
                         <template #prefix>
                             <MailOutlined class="site-form-item-icon" />
@@ -117,7 +117,7 @@ const sendMail = async () => {
     }, 1000);
     try {
         const data = new FormData();
-        data.append('email', formState.email)
+        data.append('email', userInfo.value.email)
         const response = await axios.post(ENDPOINTS.sendMailVerification, data, {
             withCredentials: true, // 允许跨站点访问控制（CORS）携带 cookie  
             headers: {
@@ -137,7 +137,8 @@ const onFinish = async () => {
     try {
         const raw = JSON.stringify({
             "username": formState.username,
-            "email": formState.email,
+            "email": userInfo.value.email,
+            "newemail": formState.email,
             "password": formState.password,
             "code": formState.code
         });

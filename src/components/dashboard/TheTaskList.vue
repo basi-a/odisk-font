@@ -76,7 +76,7 @@
 
 <script setup>
 import { ref, reactive, onUnmounted } from "vue";
-
+import Swal from 'sweetalert2';
 import axios from 'axios';
 import { ENDPOINTS } from '@/api.config.js';
 import TheEmpty from "../TheEmpty.vue";
@@ -165,12 +165,14 @@ const handleRefresh = async () => {
         message.success("Refresh Success.");
     }
 }
+
+
 import { message } from 'ant-design-vue';
 const taskdel = async () => {
     message.success('Click on Yes');
     const raw = JSON.stringify({ "taskID": selectedRecord.value.ID });
     try {
-        const response = await axios.post(ENDPOINTS.s3.upload.task.delate,raw ,{
+        const response = await axios.post(ENDPOINTS.s3.upload.task.delete, raw, {
             withCredentials: true,
         });
         if (response.status === 200) {
@@ -180,9 +182,22 @@ const taskdel = async () => {
                 showConfirmButton: false,
                 timer: 1500,
             });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: '删除失败',
+                showConfirmButton: false,
+                timer: 1500,
+            });
         }
     } catch (error) {
-
+        console.log(error);
+        Swal.fire({
+            icon: 'error',
+            title: '删除失败',
+            showConfirmButton: false,
+            timer: 1500,
+        });
     }
     handleRefresh();
 }
@@ -254,7 +269,7 @@ const getPercent = async (taskID) => {
 const initProgressUpdate = () => {
     progressUpdateTimer = setInterval(() => {
         tasklist.value.forEach(task => {
-            if (task.status === "uploading"){
+            if (task.status === "uploading") {
                 getPercent(task.ID);
             }
         });

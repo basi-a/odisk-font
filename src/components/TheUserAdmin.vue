@@ -85,7 +85,8 @@ const onSelect = (item) => {
 const userInfo = ref(null);
 async function checkPermission() {
     userInfo.value = JSON.parse(localStorage.getItem('userInfo'));
-    if (userInfo.permission !== 'userAdmin') {
+    if (userInfo.value.permission !== 'userAdmin') {
+        console.log(userInfo.value.permission)
         Swal.fire({
             icon: 'error',
             title: '访问失败',

@@ -134,7 +134,8 @@ const onFinish = async () => {
     try {
         const raw = JSON.stringify({
             "username": formState.username,
-            "email": formState.email,
+            "email": userInfo.value.email,
+            "newemail": formState.email,
             "password": formState.password,
             "code": formState.code
         });

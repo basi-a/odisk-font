@@ -2,20 +2,19 @@
     <div :style="{ padding: '2px' }">
         <a-breadcrumb>
             <a-breadcrumb-item><a href="/dashboard">首页</a></a-breadcrumb-item>
-            <a-breadcrumb-item>用户管理</a-breadcrumb-item>
+            <a-breadcrumb-item>映射列表</a-breadcrumb-item>
         </a-breadcrumb>
     </div>
 
     <div :style="{ padding: '24px', background: '#fff', minHeight: '93vh' }">
 
-        <component :is=TheUsersList></component>
+        <component :is=TheStoargeMapList></component>
 
     </div>
 </template>
 
 <script setup>
-import TheUsersList from "./TheUsersList.vue";
-
+import TheStoargeMapList from "./TheStorageMapList.vue";
 </script>
 
 <style scoped>

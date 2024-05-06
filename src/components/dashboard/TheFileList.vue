@@ -212,7 +212,7 @@ async function deleteFile() {
       "bucketname": userInfo.value.bucketname,
     });
 
-    const response = await axios.post(ENDPOINTS.s3.delatefile, raw, {
+    const response = await axios.post(ENDPOINTS.s3.deletefile, raw, {
       withCredentials: true,
     });
     getFileList();
