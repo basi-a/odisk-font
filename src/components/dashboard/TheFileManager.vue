@@ -8,12 +8,12 @@
 
     <div :style="{ padding: '24px', background: '#fff', minHeight: '93vh' }">
         
-        <a-float-button shape="circle" @click="showMkdirCard = true" :style="{ right: '80px', bottom: '150px', }">
+        <a-float-button shape="circle" @click="showMkdirCard = true" :style="{ right: '80px', bottom: '150px', }" tooltip="创建文件夹">
             <template #icon>
                 <FolderAddOutlined />
             </template>
         </a-float-button>
-        <a-float-button shape="circle" @click="showFileUploadCard = true" :style="{ right: '80px', bottom: '80px', }">
+        <a-float-button shape="circle" @click="showFileUploadCard = true" :style="{ right: '80px', bottom: '80px', }" tooltip="上传文件">
             <template #icon>
                 <CloudUploadOutlined />
             </template>

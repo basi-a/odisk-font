@@ -1,7 +1,5 @@
 // api.config.js
 
-import { update } from "lodash";
-
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export const ENDPOINTS = {

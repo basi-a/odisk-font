@@ -40,16 +40,23 @@
     <div v-else>
         <component :is=TheEmpty></component>
     </div>
-    <a-float-button shape="circle" @click="handleRefresh" :style="{ right: '80px', bottom: '220px', }">
+    <a-float-button shape="circle" @click="handleRefresh" :style="{ right: '80px', bottom: '220px', }" tooltip="刷新">
         <template #icon>
             <ReloadOutlined />
         </template>
     </a-float-button>
+    <a-float-button shape="circle" @click="JumpTO" :style="{ right: '80px', bottom: '150px', }" tooltip="新标签页打开 MinIO console">
+        <template #icon>
+            <LinkOutlined />
+        </template>
+    </a-float-button>
 </template>
 <script setup>
+const MINIO_BROWSER = import.meta.env.VITE_MINIO_BROWSER
 import TheEmpty from "../TheEmpty.vue";
 import {
     ReloadOutlined,
+    LinkOutlined,
 } from '@ant-design/icons-vue';
 import axios from 'axios';
 import { cloneDeep } from 'lodash';
@@ -76,7 +83,9 @@ const handleRefresh = async () => {
     }
 }
 getMapList();
-
+const JumpTO = () => {
+    window.open(MINIO_BROWSER, '_blank');
+}
 
 const columns = [
     {
