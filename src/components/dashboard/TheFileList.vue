@@ -407,23 +407,23 @@ const renamefile = async () => {
 const columns = [
 
   {
-    title: 'Name',
+    title: '文件名',
     dataIndex: 'name',
     width: 200,
 
   },
   {
-    title: 'Content Type',
+    title: '文件类型',
     dataIndex: 'contenttype',
     width: 150,
   },
   {
-    title: 'Size',
+    title: '文件大小',
     dataIndex: 'size',
     width: 150,
   },
   {
-    title: 'LastModified',
+    title: '上一次更改',
     dataIndex: 'lastModified',
     width: 150,
   },

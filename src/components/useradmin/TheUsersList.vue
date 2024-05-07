@@ -80,33 +80,32 @@ const handleRefresh = async () => {
 
 const columns = [
     {
-        title: 'User ID',
+        title: '用户ID',
         dataIndex: 'ID',
         width: 30,
     },
     {
-        title: 'Permission',
+        title: '权限',
         dataIndex: 'permission',
         width: 50,
     },
     {
-        title: 'Email Address',
+        title: '邮箱地址',
         dataIndex: 'email',
         width: 150,
     },
     {
-        title: 'User Name',
+        title: '用户名',
         dataIndex: 'username',
         width: 150,
     },
     {
-        title: 'Hashed Password',
+        title: '密码',
         dataIndex: 'Password',
         width: 150,
     },
-
     {
-        title: 'operation',
+        title: '操作',
         dataIndex: 'operation',
         width: 100,
     }

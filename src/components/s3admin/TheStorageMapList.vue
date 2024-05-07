@@ -89,27 +89,27 @@ const JumpTO = () => {
 
 const columns = [
     {
-        title: 'Map ID',
+        title: '映射关系ID',
         dataIndex: 'ID',
         width: 80,
     },
     {
-        title: 'User ID',
+        title: '用户ID',
         dataIndex: 'UserID',
         width: 80,
     },
     {
-        title: 'Bucket Name',
+        title: '存储桶名',
         dataIndex: 'BucketName',
         width: 150,
     },
     {
-        title: 'Created At',
+        title: '创建时间',
         dataIndex: 'CreatedAt',
         width: 100,
     },
     {
-        title: 'operation',
+        title: '操作',
         dataIndex: 'operation',
         width: 80,
     }

@@ -94,22 +94,22 @@ const showDrawer = (record) => {
 };
 const columns = [
     {
-        title: 'Object Name',
+        title: '对象名称',
         dataIndex: 'objectname',
         width: 100,
     },
     {
-        title: 'Upload ID',
+        title: 'UploadID (分片上传专用)',
         dataIndex: 'uploadID',
         width: 150,
     },
     {
-        title: 'Size',
+        title: '文件大小',
         dataIndex: 'size',
         width: 50,
     },
     {
-        title: 'Status / Progress',
+        title: '上传进度',
         dataIndex: 'status',
         width: 200,
     }
