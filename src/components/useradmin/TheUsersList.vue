@@ -17,18 +17,18 @@
                 <template v-else-if="column.dataIndex === 'operation'">
                     <div class="editable-row-operations">
                         <span v-if="editableData[record.ID]">
-                            <a-typography-link @click="updateUser(record)">Save</a-typography-link>
+                            <a-typography-link @click="updateUser(record)">保存</a-typography-link>
                             <a-popconfirm title="确定取消？" @confirm="cancel(record.ID)">
-                                <a>Cancel</a>
+                                <a>取消</a>
                             </a-popconfirm>
                         </span>
                         <span v-else>
-                            <a @click="edit(record.ID)">Edit</a>
+                            <a @click="edit(record.ID)">编辑</a>
 
                             <a-popconfirm title="确定要删除这个用户？" ok-text="Yes" cancel-text="No"
                                 v-if="record.permission !== 'userAdmin' && record.permission !== 's3Admin'"
                                 @confirm="DeleteTheUser(record.email)" @cancel="cancelDelete">
-                                <a>Delete</a>
+                                <a>删除</a>
                             </a-popconfirm>
 
                         </span>
