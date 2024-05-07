@@ -17,6 +17,7 @@ export const ENDPOINTS = {
   s3: {
     deletefile: `${BASE_URL}/s3/delete`,
     filelist: `${BASE_URL}/s3/list`,
+    getCurrentSize: `${BASE_URL}/s3/size`,
     getDownloadUrl: `${BASE_URL}/s3/download`,
     mvOrRename: `${BASE_URL}/s3/mv`,
     mkdir: `${BASE_URL}/s3/mkdir`,

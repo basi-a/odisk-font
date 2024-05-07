@@ -12,18 +12,19 @@
       </a-breadcrumb-item>
     </a-breadcrumb>
 
-
+    <a-progress :stroke-color="{ '0%': '#fbc2eb', '100%': '#a6c1ee', }" :percent="usedpercent" />
     <br />
-    <a-table class="ant-table-striped" :columns="columns" :data-source="fileList" :scroll="{ x: 400, y: 900 }" :pagination="pagination"
-      :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" bordered>
+    <a-table class="ant-table-striped" :columns="columns" :data-source="fileList" :scroll="{ x: 400, y: 900 }"
+      :pagination="pagination" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+      bordered>
       <template #bodyCell="{ column, record }">
         <!-- <template v-if="column.dataIndex === 'name'"> -->
-          <template v-if="column.dataIndex === 'name'">
-            <img :src="getIcon(record.contenttype)" class="file-icon" />
-            <a v-if="record.contenttype !== 'directory'" @click="showDrawer(record)">{{ record[column.dataIndex]
-              }}</a>
-            <span v-else @click="handleRowClick(record)"><a>{{ record[column.dataIndex] }}</a></span>
-          </template>
+        <template v-if="column.dataIndex === 'name'">
+          <img :src="getIcon(record.contenttype)" class="file-icon" />
+          <a v-if="record.contenttype !== 'directory'" @click="showDrawer(record)">{{ record[column.dataIndex]
+            }}</a>
+          <span v-else @click="handleRowClick(record)"><a>{{ record[column.dataIndex] }}</a></span>
+        </template>
         <!-- </template> -->
       </template>
     </a-table>
@@ -125,7 +126,7 @@
 </template>
 
 <script setup>
-import { ref, computed,reactive } from "vue";
+import { ref, computed, reactive } from "vue";
 
 import TheEmpty from "../TheEmpty.vue";
 import {
@@ -430,26 +431,26 @@ const columns = [
 ];
 
 const pagination = reactive({
-    // 表格分页的配置
-    current: 1,
-    pageSize: 10,
-    showSizeChanger: true, // 用于控制展示每页多少条的下拉
-    // showQuickJumper: true,
-    total: 0,
-    pageSizeOptions: ['10', '20', '50'],
-    showTotal: (total) => `共 ${total} 条`,
-    onShowSizeChange: pageSizeChange,
-    onChange: pageChange
+  // 表格分页的配置
+  current: 1,
+  pageSize: 10,
+  showSizeChanger: true, // 用于控制展示每页多少条的下拉
+  // showQuickJumper: true,
+  total: 0,
+  pageSizeOptions: ['10', '20', '50'],
+  showTotal: (total) => `共 ${total} 条`,
+  onShowSizeChange: pageSizeChange,
+  onChange: pageChange
 })
 // 页数改变的方法
 function pageSizeChange(val, pageNum) {
-    pagination.pageSize = pageNum // 修改每页显示的条数
-    pagination.current = 1
+  pagination.pageSize = pageNum // 修改每页显示的条数
+  pagination.current = 1
 }
 // 点击上一页下一页的方法
 function pageChange(page, val) {
-    console.log(page, val)
-    pagination.current = page
+  console.log(page, val)
+  pagination.current = page
 }
 
 // 计算面包屑内容
@@ -503,13 +504,33 @@ async function getFileList() {
 }
 
 const handleRefresh = async () => {
-  const status = await getFileList();
-  if (status === 200) {
+  const status_a = await getFileList();
+  const status_b = await getCurrentSize();
+  if (status_a === 200 && status_b === 200) {
     message.success("Refresh Success.");
   }
 }
 
 getFileList();
+const usedpercent = ref(0);
+const getCurrentSize = async () => {
+  try {
+    const raw = JSON.stringify({
+      "bucketname": userInfo.value.bucketname
+    });
+    const response = await axios.post(ENDPOINTS.s3.getCurrentSize, raw, {
+      withCredentials: true,
+    });
+
+    // capacity.max = response.data.data.max;
+    // capacity.current = response.data.data.current;
+    usedpercent.value = Math.round((response.data.data.current * 100) / response.data.data.max)
+    return response.status
+  } catch (error) {
+    console.log(error)
+  }
+}
+getCurrentSize();
 </script>
 <style>
 /* 在你的 CSS 文件中添加以下样式 */
