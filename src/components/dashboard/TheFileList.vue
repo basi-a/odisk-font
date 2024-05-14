@@ -244,7 +244,6 @@ async function Share(days, hours, minutes) {
       withCredentials: true,
     });
 
-    // console.log(response.data.data.downloadUrl);
     return response.data.data.downloadUrl;
   } catch (error) {
     console.error("获取文件下载连接失败:", error);
@@ -273,14 +272,13 @@ const copyToClipboard = (text) => {
 // 添加响应式变量存储分享链接
 const sharedUrl = ref('');
 
-// 调整Download函数，使其在点击分享后才执行Share函数
+// 点击分享后才执行Share函数
 const handleShareClick = async () => {
   showMVCard.value = false;
   showRenameCard.value = false;
   if (days.value > 0 || hours.value > 0 || minutes.value > 0) {
     const url = await Share(days.value, hours.value, minutes.value);
     sharedUrl.value = url;
-    // console.log(url)
     showShareCard.value = true; // 显示分享卡片
   } else {
     Swal.fire({
@@ -297,7 +295,7 @@ const Download = async () => {
       "objectname": selectedRecord.value.objectname,
       "bucketname": userInfo.value.bucketname,
     });
-    // console.log(raw)
+
     const response = await axios.post(ENDPOINTS.s3.getDownloadUrl, raw, {
       withCredentials: true,
     });
@@ -522,8 +520,6 @@ const getCurrentSize = async () => {
       withCredentials: true,
     });
 
-    // capacity.max = response.data.data.max;
-    // capacity.current = response.data.data.current;
     usedpercent.value = Math.round((response.data.data.current * 100) / response.data.data.max)
     return response.status
   } catch (error) {

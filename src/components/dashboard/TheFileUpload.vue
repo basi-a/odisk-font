@@ -52,7 +52,7 @@ const updateFileStatusToRemoved = (fileUID) => {
     fileDetailsMap.value.set(fileUID, { objectname: details.objectname, uploadID: details.uploadID, taskID: details.taskID, status: "removed" }); // Update the file details map
   }
   if (cancel) {
-    cancel(); // Call the cancel function to interrupt ongoing uploads
+    cancel(); // 打断axios上传
   }
 };
 
@@ -93,12 +93,13 @@ const customRequest = async (options) => {
   try {
     //大于1G就要分片上传啊
     if (file.size > criticalFileSize) {
-
       // 大文件上传逻辑
       const partsAndIndex = await cutAndIndexFile(file);
       const uploadDetailsAndTaskID = await getUploadURLsAndUploadID(file, objectname, partsAndIndex.maxPartNumber);
-      const eTagsAndStatus = await uploadFileParts(partsAndIndex.chunks, uploadDetailsAndTaskID.uploadDetails, uploadDetailsAndTaskID.taskID, file, onProgress);//上传分片
-      const ok = await completeMultipartUpload(file, objectname, uploadDetailsAndTaskID.uploadDetails.uploadID, partsAndIndex.maxPartNumber, eTagsAndStatus, uploadDetailsAndTaskID.taskID);//通知合并分片
+      //上传分片
+      const eTagsAndStatus = await uploadFileParts(partsAndIndex.chunks, uploadDetailsAndTaskID.uploadDetails, uploadDetailsAndTaskID.taskID, file, onProgress);
+      //通知合并分片
+      const ok = await completeMultipartUpload( objectname, uploadDetailsAndTaskID.uploadDetails.uploadID, partsAndIndex.maxPartNumber, eTagsAndStatus, uploadDetailsAndTaskID.taskID);
       if (ok === true) {
         onSuccess("Large file uploaded successfully.", file);
       } else {
@@ -108,7 +109,6 @@ const customRequest = async (options) => {
     } else {
       // 小文件直接上传
       const urlAndTaskID = await getUploadURL(file, objectname)
-
       const ok = await singleFileUpload(urlAndTaskID.url, file, urlAndTaskID.taskID, onProgress);
       if (ok === true) {
         onSuccess("Small file uploaded successfully.", file);
@@ -123,7 +123,7 @@ const customRequest = async (options) => {
   }
 }
 
-// 辅助函数定义（请根据实际情况实现）
+// 辅助函数定义
 async function getUploadURL(file, objectname) {
   try {
     const raw = JSON.stringify({
@@ -131,7 +131,7 @@ async function getUploadURL(file, objectname) {
       "objectname": objectname,
     });
     console.log(raw)
-    // 使用JSON传递数据
+
     const response = await axios.post(ENDPOINTS.s3.upload.smallFile, raw, {
       withCredentials: true,
       headers: {
@@ -220,7 +220,7 @@ async function uploadFileParts(chunks, uploadDetails, taskID, file, onProgress) 
   return { eTags, status }
 }
 
-async function completeMultipartUpload(file, objectname, uploadID, maxPartNumber, eTagsAndStatus, taskID) {
+async function completeMultipartUpload(objectname, uploadID, maxPartNumber, eTagsAndStatus, taskID) {
 
   if (eTagsAndStatus.status === "removed") {
     return false
@@ -234,7 +234,6 @@ async function completeMultipartUpload(file, objectname, uploadID, maxPartNumber
       "maxPartNumber": maxPartNumber,
       "eTags": eTagsAndStatus.eTags,
     });
-    // console.log(raw);
 
     const response = await axios.post(ENDPOINTS.s3.upload.bigFile.finish, raw, {
       withCredentials: true,
@@ -272,11 +271,9 @@ async function singleFileUpload(url, file, taskID, onProgress) {
         cancel = c;
       })
     })
-    // console.log("singleFileUpload", fileDetailsMap.value)
+
     const details = fileDetailsMap.value.get(file.uid);
-    // console.log(details)
     if (details.status === "removed") {
-      // console.log(details.status)
       try {
         await TaskAbort(details.objectname, details.uploadID, details.taskID);
 
@@ -305,12 +302,10 @@ async function singleFileUpload(url, file, taskID, onProgress) {
 }
 
 async function cutAndIndexFile(file) {
-  // console.log(file.size)
+
   const chunks = [];
   let start = 0;
   const fileSize = file.size;
-  // const partNumberArr = []; // 索引数组，将从1开始计数
-
   for (let i = 0; start < fileSize; i++) {
     let end = start + chunkSize;
     if (end > fileSize) {
@@ -322,9 +317,8 @@ async function cutAndIndexFile(file) {
     chunks.push(chunk);
     start = end;
   }
-  // console.log(chunks)
   const maxPartNumber = chunks.length
-  // 返回分片数组及其下标数组
+  // 返回分片数组及分片数
   return { chunks, maxPartNumber };
 }
 

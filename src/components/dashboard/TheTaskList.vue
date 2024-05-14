@@ -265,7 +265,7 @@ const getPercent = async (taskID) => {
     }
 };
 
-// 新增：初始化定时器，每秒更新进度
+//初始化定时器，每秒更新进度
 const initProgressUpdate = () => {
     progressUpdateTimer = setInterval(() => {
         tasklist.value.forEach(task => {
@@ -275,7 +275,7 @@ const initProgressUpdate = () => {
         });
     }, 1500);
 };
-// 新增：在组件卸载时清理定时器
+// 在组件卸载时清理定时器
 onUnmounted(() => {
     clearInterval(progressUpdateTimer);
 });

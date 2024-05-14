@@ -104,16 +104,9 @@ const sendMail = async () => {
 // 重置密码处理函数  
 const onFinish = async () => {
     try {
-        // const data = new FormData();
-        // data.append('email', formState.email);
-        // data.append('password', formState.password);
-        // data.append('code', formState.code)
         const data = JSON.stringify(formState)
         const response = await axios.post(ENDPOINTS.forget, data, {
             withCredentials: true, // 允许跨站点访问控制（CORS）携带 cookie  
-            // headers: {
-            //     'Content-Type': 'multipart/form-data', // 设置正确的 Content-Type  
-            // },
         });
 
         if (response.status === 200) {
@@ -127,7 +120,6 @@ const onFinish = async () => {
                 showConfirmButton: false,
                 timer: 1500
             });
-            //   重定向到 /dashboard 页面  
             router.push('/login');
         } else {
             // 处理登录失败的情况  
