@@ -343,8 +343,8 @@ const movefile = async () => {
   try {
     const raw = JSON.stringify({
       "srcbucketname": userInfo.value.bucketname,
-      "srcobjectname": userInfo.objectname,
-      "destobjectName": destPrefix + selectedRecord.value.name,
+      "srcobjectname": selectedRecord.value.objectname,
+      "destobjectName": destPrefix.value + selectedRecord.value.name,
     });
     const response = await axios.post(ENDPOINTS.s3.mvOrRename, raw, {
       withCredentials: true,
@@ -370,12 +370,15 @@ const movefile = async () => {
 }
 const newName = ref("");
 const renamefile = async () => {
-  newName.value = destPrefix.value.trim();
+  newName.value = newName.value.trim();
+  if (selectedRecord.value.prefix !== "/"){
+    newName.value = selectedRecord.value.prefix + newName.value
+  }
   try {
     const raw = JSON.stringify({
       "srcbucketname": userInfo.value.bucketname,
-      "srcobjectname": userInfo.objectname,
-      "destobjectName": selectedRecord.value.prefix + newName,
+      "srcobjectname": selectedRecord.value.objectname,
+      "destobjectName": newName.value,
     });
     const response = await axios.post(ENDPOINTS.s3.mvOrRename, raw, {
       withCredentials: true,

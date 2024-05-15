@@ -64,7 +64,7 @@
                     :rules="[{ required: true, message: 'Please input your verification code!' }]">
                     <div style="display: flex; align-items: center;">
                         <a-input v-model:value="formState.code"></a-input>
-                        <a-button @click="sendMail" :disabled="sendingDisabled || !formState.email"
+                        <a-button @click="sendMail" 
                             style="margin-left: 10px;">
                             {{ sendingDisabled ? `重新发送(${countdown}s)` : '获取验证码' }}
                         </a-button>
@@ -202,7 +202,7 @@ const onFinishFailed = errorInfo => {
     console.log('Failed:', errorInfo);
 };
 const disabled = computed(() => {
-    return !(formState.email && formState.code);
+    return !(formState.code);
 });
 </script>
 

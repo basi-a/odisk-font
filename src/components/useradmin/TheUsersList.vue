@@ -227,6 +227,8 @@ const DeleteTheUser = async (email) => {
             showConfirmButton: false,
             timer: 1500,
         });
+    }finally{
+        handleRefresh();
     }
 }
 const cancelDelete = (e) => {

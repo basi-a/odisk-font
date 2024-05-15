@@ -201,7 +201,7 @@ const taskdel = async () => {
     }
     handleRefresh();
 }
-
+let isUpdatingProgress = true;
 const taskAbort = async () => {
     message.success('Click on Yes');
     try {
@@ -211,22 +211,26 @@ const taskAbort = async () => {
             "uploadID": selectedRecord.value.uploadID,
             "taskID": selectedRecord.value.ID,
         });
-        const response = await axios.delete(ENDPOINTS.s3.upload.task.abort, {
+        const response = await axios.post(ENDPOINTS.s3.upload.task.abort, raw, {
             withCredentials: true,
-            data: raw,
         });
         if (response.status === 200) {
             Swal.fire({
                 icon: 'success',
-                title: '删除成功',
+                title: '取消成功',
                 showConfirmButton: false,
                 timer: 1500,
             });
         }
     } catch (error) {
-
+        console.log(error)
+    }finally {
+        // 取消操作后，停止进度更新定时器
+        isUpdatingProgress = false;
+        clearInterval(progressUpdateTimer);
+        // 立即刷新列表
+        handleRefresh();
     }
-    handleRefresh();
 }
 
 const cancel = e => {
@@ -244,7 +248,7 @@ const getRecordPercent = (record) => {
 let progressUpdateTimer;
 
 const getPercent = async (taskID) => {
-
+    if (!isUpdatingProgress) return;
     const url = `${ENDPOINTS.s3.upload.task.getPercent}/${taskID}`;
     try {
         const response = await axios.get(url, {

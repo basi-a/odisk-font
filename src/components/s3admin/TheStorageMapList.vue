@@ -215,7 +215,7 @@ const DelateTheMap = async (record) => {
                 showConfirmButton: false,
                 timer: 1500,
             });
-
+            
         } else {
             Swal.fire({
                 icon: 'error',
@@ -232,6 +232,8 @@ const DelateTheMap = async (record) => {
             showConfirmButton: false,
             timer: 1500,
         });
+    }finally{
+        handleRefresh();
     }
 }
 </script>
