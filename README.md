@@ -14,7 +14,8 @@ See [Vite Configuration Reference](https://vitejs.dev/config/).
 
 ```sh
 npm install
-./cert/cp-cert.sh
+cd cert
+./cp-cert.sh
 ```
 
 ### Compile and Hot-Reload for Development
